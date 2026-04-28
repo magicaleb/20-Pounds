@@ -2,95 +2,86 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>20 Pounds — Calorie Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Calorie Flow" />
+    <title>Calorie Flow</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/icon.svg" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div id="app" class="app-shell">
-      <header class="card header-card">
-        <p id="todayDate" class="muted">Today</p>
-        <div class="header-total-wrap">
-          <p class="muted">Total calories</p>
-          <h1 id="todayTotal" class="hero-total">0</h1>
+    <div class="app-shell">
+      <header class="top card">
+        <div>
+          <p id="todayLabel" class="muted">Today</p>
+          <h1 id="todayTotal">0 kcal</h1>
         </div>
+        <button id="themeBtn" class="icon-btn" type="button" aria-label="Toggle theme">◐</button>
       </header>
 
-      <main class="main-content">
-        <section class="card target-card" aria-labelledby="targetTitle">
+      <section class="card progress-card" aria-label="Daily progress">
+        <div class="progress-head">
           <div>
-            <h2 id="targetTitle">Daily target</h2>
-            <p id="targetText" class="muted">0 / 2000 kcal</p>
+            <p class="muted">Daily target</p>
+            <p id="targetText" class="target-text">0 / 2000 kcal</p>
           </div>
-          <div class="ring-wrap" aria-hidden="true">
-            <svg class="progress-ring" viewBox="0 0 120 120" role="img">
-              <circle class="ring-track" cx="60" cy="60" r="50"></circle>
-              <circle id="ringProgress" class="ring-progress" cx="60" cy="60" r="50"></circle>
-            </svg>
-            <span id="targetPct" class="ring-label">0%</span>
+          <div class="target-controls">
+            <button type="button" class="small-btn" data-target-adjust="-100">−100</button>
+            <button type="button" class="small-btn" data-target-adjust="100">+100</button>
           </div>
-          <div class="bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <div id="targetBar" class="bar-fill"></div>
+        </div>
+        <div class="bar"><div id="progressBar" class="bar-fill"></div></div>
+      </section>
+
+      <section class="card wizard-card" aria-label="Quick entry wizard">
+        <div class="wizard-head">
+          <h2 id="wizardTitle">Step 1 · What did you eat?</h2>
+          <p id="wizardHint" class="muted">Pick the closest option. Precision is not required.</p>
+        </div>
+
+        <div id="stepFood" class="wizard-step active">
+          <div id="foodGrid" class="food-grid"></div>
+        </div>
+
+        <div id="stepSize" class="wizard-step" hidden>
+          <div id="selectedFoodPreview" class="selected-food"></div>
+          <div id="sizeGrid" class="size-grid"></div>
+          <div class="wizard-actions">
+            <button id="backToFoodBtn" class="secondary-btn" type="button">Previous</button>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section class="card quick-card" aria-labelledby="quickTitle">
-          <h2 id="quickTitle">Quick add</h2>
-          <p class="muted">Tap once to log, twice if adding a note.</p>
-          <div id="quickPresetGrid" class="quick-grid"></div>
-          <label class="field-label" for="quickNote">Quick note (optional)</label>
-          <input id="quickNote" class="text-input" type="text" maxlength="80" placeholder="e.g., breakfast burrito" />
-          <button id="manualEntryBtn" class="secondary-btn" type="button">Manual entry</button>
-        </section>
-
-        <section class="card history-card" aria-labelledby="historyTitle">
-          <div class="history-heading">
-            <h2 id="historyTitle">Today’s entries</h2>
-            <span id="entryCount" class="muted">0 items</span>
-          </div>
-          <div id="historyList" class="history-list" aria-live="polite"></div>
-        </section>
-
-        <section class="card settings-card" aria-labelledby="settingsTitle">
-          <h2 id="settingsTitle">Settings</h2>
-          <label for="dailyTargetInput" class="field-label">Daily calorie target</label>
-          <div class="settings-row">
-            <input id="dailyTargetInput" class="text-input" type="number" min="1" step="1" inputmode="numeric" />
-            <button id="saveTargetBtn" class="primary-btn" type="button">Save</button>
-          </div>
-        </section>
-      </main>
-
-      <div id="quickSticky" class="sticky-quick card">
-        <div id="quickStickyGrid" class="quick-grid"></div>
-      </div>
-
-      <div id="toast" class="toast" role="status" aria-live="polite">
-        <span id="toastMessage">Entry deleted.</span>
-        <button id="undoDeleteBtn" class="link-btn" type="button">Undo</button>
-      </div>
-
-      <div id="statusBanner" class="status-banner" hidden></div>
+      <section class="card history-card">
+        <div class="history-head">
+          <h2>Today’s entries</h2>
+          <p id="entryCount" class="muted">0 entries</p>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
     </div>
 
-    <dialog id="entryModal" class="entry-modal">
-      <form id="entryForm" method="dialog" class="entry-form">
-        <h3 id="entryModalTitle">Edit entry</h3>
-        <label for="entryCalories" class="field-label">Calories</label>
-        <input id="entryCalories" class="text-input" type="number" min="1" step="1" required />
-
-        <label for="entryNote" class="field-label">Note</label>
-        <input id="entryNote" class="text-input" type="text" maxlength="120" />
-
-        <label for="entryQuickType" class="field-label">Type</label>
-        <input id="entryQuickType" class="text-input" type="text" maxlength="32" />
-
-        <div class="modal-actions">
-          <button id="cancelEntryBtn" type="button" class="secondary-btn">Cancel</button>
-          <button id="saveEntryBtn" type="submit" class="primary-btn">Save changes</button>
+    <dialog id="editDialog" class="edit-dialog">
+      <form id="editForm" method="dialog" class="edit-form">
+        <h3>Edit entry</h3>
+        <p class="muted">Food</p>
+        <div id="editFoodGrid" class="food-grid compact-grid"></div>
+        <p class="muted">Size</p>
+        <div id="editSizeGrid" class="size-grid"></div>
+        <p id="editPreview" class="edit-preview">0 kcal</p>
+        <div class="dialog-actions">
+          <button type="button" id="cancelEditBtn" class="secondary-btn">Cancel</button>
+          <button type="submit" class="primary-btn">Save</button>
         </div>
       </form>
     </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite">
+      <span id="toastText"></span>
+      <button type="button" id="undoBtn" class="link-btn">Undo</button>
+    </div>
 
     <script type="module" src="app.js"></script>
   </body>

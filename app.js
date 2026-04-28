@@ -1,6 +1,4 @@
-import {
-  initializeApp
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import {
   addDoc,
   collection,
@@ -17,408 +15,421 @@ import {
   where
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
-const constants = {
-  DEFAULT_DAILY_TARGET: 2000,
-  TOAST_TIMEOUT_MS: 6000,
-  QUICK_PRESETS: [
-    { type: 'small meal', calories: 300 },
-    { type: 'medium meal', calories: 550 },
-    { type: 'large meal', calories: 800 },
-    { type: 'snack', calories: 180 }
-  ]
+const DEFAULTS = {
+  dailyTarget: 2000,
+  toastMs: 5000,
+  quickActions: [
+    { label: 'Tiny bite', kcal: 80 },
+    { label: 'Snack', kcal: 180 },
+    { label: 'Light meal', kcal: 350 },
+    { label: 'Regular meal', kcal: 550 },
+    { label: 'Large meal', kcal: 800 },
+    { label: 'Dessert / drink', kcal: 300 }
+  ],
+  mealTypes: ['meal', 'snack', 'drink', 'treat'],
+  portions: ['tiny', 'small', 'medium', 'large', 'huge'],
+  densities: ['light', 'normal', 'heavy'],
+  baseMap: {
+    meal: { tiny: 200, small: 350, medium: 550, large: 750, huge: 950 },
+    snack: { tiny: 80, small: 150, medium: 250, large: 350, huge: 500 },
+    drink: { tiny: 50, small: 120, medium: 220, large: 320, huge: 450 },
+    treat: { tiny: 120, small: 220, medium: 360, large: 500, huge: 700 }
+  },
+  densityOffset: { light: -80, normal: 0, heavy: 120 }
 };
 
 const state = {
   uid: getOrCreateUid(),
-  todayKey: dateUtils.toEntryDate(new Date()),
-  dailyTarget: constants.DEFAULT_DAILY_TARGET,
+  todayKey: toDateKey(new Date()),
+  dailyTarget: DEFAULTS.dailyTarget,
   entries: [],
-  activeEntryId: null,
   lastDeleted: null,
   toastTimer: null,
   db: null,
-  initialized: false
+  composer: { mealType: 'meal', portion: 'medium', density: 'normal' },
+  edit: { id: null, mealType: 'meal', portion: 'medium', density: 'normal', kcal: 0, manualDelta: 0 }
 };
 
 const ui = {
-  todayDate: document.getElementById('todayDate'),
+  todayLabel: document.getElementById('todayLabel'),
   todayTotal: document.getElementById('todayTotal'),
   targetText: document.getElementById('targetText'),
-  targetBar: document.getElementById('targetBar'),
-  targetPct: document.getElementById('targetPct'),
-  ringProgress: document.getElementById('ringProgress'),
-  quickPresetGrid: document.getElementById('quickPresetGrid'),
-  quickStickyGrid: document.getElementById('quickStickyGrid'),
-  quickNote: document.getElementById('quickNote'),
-  manualEntryBtn: document.getElementById('manualEntryBtn'),
+  progressBar: document.getElementById('progressBar'),
+  quickGrid: document.getElementById('quickGrid'),
+  mealTypeChips: document.getElementById('mealTypeChips'),
+  portionChips: document.getElementById('portionChips'),
+  densityChips: document.getElementById('densityChips'),
+  smartAddBtn: document.getElementById('smartAddBtn'),
+  smartPreview: document.getElementById('smartPreview'),
   historyList: document.getElementById('historyList'),
   entryCount: document.getElementById('entryCount'),
-  dailyTargetInput: document.getElementById('dailyTargetInput'),
-  saveTargetBtn: document.getElementById('saveTargetBtn'),
   toast: document.getElementById('toast'),
-  toastMessage: document.getElementById('toastMessage'),
-  undoDeleteBtn: document.getElementById('undoDeleteBtn'),
-  statusBanner: document.getElementById('statusBanner'),
-  entryModal: document.getElementById('entryModal'),
-  entryForm: document.getElementById('entryForm'),
-  entryModalTitle: document.getElementById('entryModalTitle'),
-  entryCalories: document.getElementById('entryCalories'),
-  entryNote: document.getElementById('entryNote'),
-  entryQuickType: document.getElementById('entryQuickType'),
-  cancelEntryBtn: document.getElementById('cancelEntryBtn')
+  toastText: document.getElementById('toastText'),
+  undoBtn: document.getElementById('undoBtn'),
+  themeBtn: document.getElementById('themeBtn'),
+  editDialog: document.getElementById('editDialog'),
+  editForm: document.getElementById('editForm'),
+  editTypeChips: document.getElementById('editTypeChips'),
+  editPortionChips: document.getElementById('editPortionChips'),
+  editDensityChips: document.getElementById('editDensityChips'),
+  editCalories: document.getElementById('editCalories'),
+  cancelEditBtn: document.getElementById('cancelEditBtn')
 };
 
-const dateUtils = {
-  toEntryDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  },
-  prettyToday(date) {
-    return date.toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
-  },
-  compactTime(date) {
-    return date.toLocaleTimeString(undefined, {
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  }
-};
+function getOrCreateUid() {
+  const key = 'calorie-flow-user-key';
+  const existing = localStorage.getItem(key);
+  if (existing) return existing;
+  const created = crypto.randomUUID();
+  localStorage.setItem(key, created);
+  return created;
+}
 
-const firebaseModule = {
-  async init() {
-    let cfg;
-    try {
-      const module = await import('./firebase-config.js');
-      cfg = module.FIREBASE_CONFIG;
-    } catch (error) {
-      throw new Error('firebase-config.js missing. Copy firebase-config.example.js to firebase-config.js and set values.');
-    }
-    if (!cfg || !cfg.projectId) {
-      throw new Error('Firebase config is incomplete. Check firebase-config.js.');
-    }
-    const app = initializeApp(cfg);
-    return getFirestore(app);
-  }
-};
+function toDateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function prettyDate(date) {
+  return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function timeLabel(ts) {
+  const date = ts?.toDate ? ts.toDate() : new Date();
+  return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+function estimateCalories(mealType, portion, density) {
+  const base = DEFAULTS.baseMap[mealType][portion];
+  return Math.max(50, base + DEFAULTS.densityOffset[density]);
+}
+
+function describeEntry(entry) {
+  return `${entry.mealType} • ${entry.portion} • ${entry.density}`;
+}
+
+function sanitize(text) {
+  return String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 
 const store = {
-  entriesCollection() {
+  entriesCol() {
     return collection(state.db, 'users', state.uid, 'entries');
   },
   settingsDoc() {
-    return doc(state.db, 'users', state.uid, 'settings', 'main');
+    return doc(state.db, 'users', state.uid, 'settings', 'app');
   },
-  async loadSettings() {
-    const snapshot = await getDoc(this.settingsDoc());
-    if (snapshot.exists()) {
-      const data = snapshot.data();
-      state.dailyTarget = Number(data.dailyTarget) || constants.DEFAULT_DAILY_TARGET;
+  async load() {
+    const settingsSnap = await getDoc(this.settingsDoc());
+    if (settingsSnap.exists()) {
+      state.dailyTarget = Number(settingsSnap.data().dailyTarget) || DEFAULTS.dailyTarget;
     }
-  },
-  async saveSettings(dailyTarget) {
-    await setDoc(this.settingsDoc(), {
-      dailyTarget,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-    state.dailyTarget = dailyTarget;
-  },
-  async loadEntriesForToday() {
     const q = query(
-      this.entriesCollection(),
+      this.entriesCol(),
       where('entryDate', '==', state.todayKey),
       orderBy('createdAt', 'desc')
     );
     const snap = await getDocs(q);
-    state.entries = snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+    state.entries = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   },
-  async createEntry({ calories, note = '', quickType = 'manual' }) {
-    const payload = {
-      calories: Number(calories),
-      note: note.trim(),
-      quickType: quickType.trim(),
+  async saveTarget(next) {
+    await setDoc(this.settingsDoc(), { dailyTarget: next, updatedAt: serverTimestamp() }, { merge: true });
+    state.dailyTarget = next;
+  },
+  async addEntry(payload) {
+    await addDoc(this.entriesCol(), {
+      ...payload,
+      entryDate: state.todayKey,
       createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      entryDate: state.todayKey
-    };
-    const ref = await addDoc(this.entriesCollection(), payload);
-    return ref.id;
-  },
-  async updateEntry(entryId, updates) {
-    await updateDoc(doc(this.entriesCollection(), entryId), {
-      ...updates,
-      calories: Number(updates.calories),
-      note: (updates.note || '').trim(),
-      quickType: (updates.quickType || 'manual').trim(),
       updatedAt: serverTimestamp()
     });
   },
-  async deleteEntry(entryId) {
-    await deleteDoc(doc(this.entriesCollection(), entryId));
+  async updateEntry(id, payload) {
+    await updateDoc(doc(this.entriesCol(), id), { ...payload, updatedAt: serverTimestamp() });
+  },
+  async deleteEntry(id) {
+    await deleteDoc(doc(this.entriesCol(), id));
   }
 };
 
-function getOrCreateUid() {
-  const key = 'twenty-pounds-uid';
-  const existing = localStorage.getItem(key);
-  if (existing) return existing;
-  const uid = crypto.randomUUID();
-  localStorage.setItem(key, uid);
-  return uid;
+function renderQuickActions() {
+  ui.quickGrid.innerHTML = '';
+  for (const action of DEFAULTS.quickActions) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'quick-btn';
+    btn.dataset.kcal = String(action.kcal);
+    btn.dataset.label = action.label;
+    btn.innerHTML = `${action.label}<small>${action.kcal} kcal</small>`;
+    ui.quickGrid.appendChild(btn);
+  }
 }
 
-function getTodayTotal() {
+function renderChipRow(root, options, active) {
+  root.innerHTML = '';
+  for (const option of options) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `chip${option === active ? ' active' : ''}`;
+    btn.dataset.value = option;
+    btn.textContent = option;
+    root.appendChild(btn);
+  }
+}
+
+function renderComposer() {
+  renderChipRow(ui.mealTypeChips, DEFAULTS.mealTypes, state.composer.mealType);
+  renderChipRow(ui.portionChips, DEFAULTS.portions, state.composer.portion);
+  renderChipRow(ui.densityChips, DEFAULTS.densities, state.composer.density);
+  const kcal = estimateCalories(state.composer.mealType, state.composer.portion, state.composer.density);
+  ui.smartPreview.textContent = `Estimated ${kcal} kcal`;
+}
+
+function totalKcal() {
   return state.entries.reduce((sum, item) => sum + (Number(item.calories) || 0), 0);
 }
 
-function renderPresets(target) {
-  target.innerHTML = '';
-  constants.QUICK_PRESETS.forEach((preset) => {
-    const button = document.createElement('button');
-    button.className = 'quick-btn';
-    button.type = 'button';
-    button.dataset.presetType = preset.type;
-    button.dataset.presetCalories = String(preset.calories);
-    button.innerHTML = `${preset.type}<small>${preset.calories} kcal</small>`;
-    target.appendChild(button);
-  });
-}
-
 function renderSummary() {
-  const total = getTodayTotal();
-  const target = Math.max(1, state.dailyTarget);
-  const ratio = Math.min(total / target, 2);
-  const pct = Math.round((total / target) * 100);
-  const ringCircumference = 2 * Math.PI * 50;
-  const strokeOffset = ringCircumference * (1 - Math.min(ratio, 1));
-
-  ui.todayDate.textContent = dateUtils.prettyToday(new Date());
-  ui.todayTotal.textContent = String(total);
-  ui.targetText.textContent = `${total} / ${target} kcal`;
-  ui.targetPct.textContent = `${Math.max(0, pct)}%`;
-  ui.targetBar.style.width = `${Math.min(ratio * 100, 100)}%`;
-  ui.ringProgress.style.strokeDasharray = String(ringCircumference);
-  ui.ringProgress.style.strokeDashoffset = String(strokeOffset);
-  ui.dailyTargetInput.value = String(target);
+  const total = totalKcal();
+  const ratio = Math.min(1.25, total / Math.max(1, state.dailyTarget));
+  ui.todayLabel.textContent = prettyDate(new Date());
+  ui.todayTotal.textContent = `${total} kcal`;
+  ui.targetText.textContent = `${total} / ${state.dailyTarget}`;
+  ui.progressBar.style.width = `${Math.min(100, ratio * 100)}%`;
 }
 
 function renderHistory() {
-  const entries = [...state.entries].sort((a, b) => {
-    const aTime = a.createdAt?.seconds || 0;
-    const bTime = b.createdAt?.seconds || 0;
-    return bTime - aTime;
-  });
+  const items = [...state.entries].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+  ui.entryCount.textContent = `${items.length} ${items.length === 1 ? 'entry' : 'entries'}`;
   ui.historyList.innerHTML = '';
-  ui.entryCount.textContent = `${entries.length} ${entries.length === 1 ? 'item' : 'items'}`;
 
-  if (!entries.length) {
-    ui.historyList.innerHTML = '<div class="empty-state">No entries yet today. Tap a quick-add button to start.</div>';
+  if (!items.length) {
+    ui.historyList.innerHTML = '<p class="muted">No entries yet. Tap a quick action above.</p>';
     return;
   }
 
-  entries.forEach((entry) => {
+  for (const item of items) {
     const node = document.createElement('article');
     node.className = 'history-item';
-    const createdDate = entry.createdAt?.toDate ? entry.createdAt.toDate() : new Date();
-    const noteText = entry.note ? ` • ${entry.note}` : '';
-
     node.innerHTML = `
-      <div class="entry-main">
-        <p><strong>${entry.calories} kcal</strong> — ${sanitize(entry.quickType || 'manual')}</p>
-        <p class="entry-meta">${sanitize(dateUtils.compactTime(createdDate))}${sanitize(noteText)}</p>
+      <div>
+        <p class="item-kcal">${Number(item.calories) || 0} kcal</p>
+        <p>${sanitize(describeEntry(item))}</p>
+        <p class="item-meta">${sanitize(timeLabel(item.createdAt))}</p>
       </div>
-      <div class="item-actions">
-        <button type="button" data-action="edit" data-id="${entry.id}" aria-label="Edit entry">✏️</button>
-        <button type="button" class="delete-btn" data-action="delete" data-id="${entry.id}" aria-label="Delete entry">🗑️</button>
+      <div class="actions">
+        <button type="button" class="icon-btn" data-action="edit" data-id="${item.id}">✎</button>
+        <button type="button" class="icon-btn delete" data-action="delete" data-id="${item.id}">🗑</button>
       </div>
     `;
-
     ui.historyList.appendChild(node);
-  });
+  }
 }
 
-function sanitize(text) {
-  return String(text).replace(/[<>&"]/g, (m) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[m]));
-}
-
-function showStatus(message) {
-  ui.statusBanner.hidden = false;
-  ui.statusBanner.textContent = message;
-  window.clearTimeout(showStatus._timer);
-  showStatus._timer = window.setTimeout(() => {
-    ui.statusBanner.hidden = true;
-  }, 3600);
-}
-
-function setLoading(isLoading) {
-  document.body.classList.toggle('loading', isLoading);
-}
-
-function showToast(message) {
-  ui.toastMessage.textContent = message;
+function showToast(text, showUndo = false) {
+  ui.toastText.textContent = text;
+  ui.undoBtn.hidden = !showUndo;
   ui.toast.classList.add('show');
-  window.clearTimeout(state.toastTimer);
-  state.toastTimer = window.setTimeout(hideToast, constants.TOAST_TIMEOUT_MS);
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => ui.toast.classList.remove('show'), DEFAULTS.toastMs);
 }
 
-function hideToast() {
-  ui.toast.classList.remove('show');
+function applyTheme(theme) {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+  localStorage.setItem('calorie-flow-theme', theme);
 }
 
-async function refreshEntries() {
-  await store.loadEntriesForToday();
-  renderHistory();
+function initTheme() {
+  const saved = localStorage.getItem('calorie-flow-theme');
+  if (saved === 'dark' || saved === 'light') {
+    applyTheme(saved);
+    return;
+  }
+  applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+}
+
+async function addEntry(payload) {
+  await store.addEntry(payload);
+  await refresh();
+  showToast('Saved');
+}
+
+function makePayloadFromComposer() {
+  const mealType = state.composer.mealType;
+  const portion = state.composer.portion;
+  const density = state.composer.density;
+  return {
+    calories: estimateCalories(mealType, portion, density),
+    mealType,
+    portion,
+    density,
+    method: 'smart'
+  };
+}
+
+async function refresh() {
+  await store.load();
   renderSummary();
+  renderHistory();
 }
 
-async function handleQuickAdd(calories, quickType) {
-  try {
-    const note = ui.quickNote.value.trim();
-    await store.createEntry({ calories, quickType, note });
-    ui.quickNote.value = '';
-    await refreshEntries();
-  } catch (error) {
-    console.error(error);
-    showStatus('Could not save entry. Please retry.');
-  }
+function openEdit(entry) {
+  state.edit.id = entry.id;
+  state.edit.mealType = entry.mealType;
+  state.edit.portion = entry.portion;
+  state.edit.density = entry.density;
+  state.edit.manualDelta = Number(entry.manualDelta) || 0;
+  state.edit.kcal = Number(entry.calories) || estimateCalories(entry.mealType, entry.portion, entry.density);
+  renderChipRow(ui.editTypeChips, DEFAULTS.mealTypes, state.edit.mealType);
+  renderChipRow(ui.editPortionChips, DEFAULTS.portions, state.edit.portion);
+  renderChipRow(ui.editDensityChips, DEFAULTS.densities, state.edit.density);
+  updateEditCalories();
+  ui.editDialog.showModal();
 }
 
-function openEntryModal({ mode, entry }) {
-  state.activeEntryId = entry?.id || null;
-  ui.entryModalTitle.textContent = mode === 'edit' ? 'Edit entry' : 'Manual entry';
-  ui.entryCalories.value = entry?.calories ? String(entry.calories) : '';
-  ui.entryNote.value = entry?.note || ui.quickNote.value || '';
-  ui.entryQuickType.value = entry?.quickType || 'manual';
-  ui.entryModal.showModal();
+function updateEditCalories() {
+  const computed = estimateCalories(state.edit.mealType, state.edit.portion, state.edit.density) + state.edit.manualDelta;
+  state.edit.kcal = Math.max(50, computed);
+  ui.editCalories.textContent = `${state.edit.kcal} kcal`;
 }
 
-function closeEntryModal() {
-  state.activeEntryId = null;
-  ui.entryForm.reset();
-  ui.entryModal.close();
-}
+async function bindEvents() {
+  ui.quickGrid.addEventListener('click', async (event) => {
+    const btn = event.target.closest('button[data-kcal]');
+    if (!btn) return;
+    const kcal = Number(btn.dataset.kcal);
+    await addEntry({ calories: kcal, mealType: 'quick', portion: 'preset', density: btn.dataset.label || 'normal', method: 'quick' });
+  });
 
-async function undoDelete() {
-  if (!state.lastDeleted) return;
-  const { calories, note, quickType } = state.lastDeleted;
-  try {
-    await store.createEntry({ calories, note, quickType });
-    state.lastDeleted = null;
-    hideToast();
-    await refreshEntries();
-  } catch (error) {
-    console.error(error);
-    showStatus('Undo failed.');
-  }
-}
+  ui.mealTypeChips.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-value]');
+    if (!btn) return;
+    state.composer.mealType = btn.dataset.value;
+    renderComposer();
+  });
+  ui.portionChips.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-value]');
+    if (!btn) return;
+    state.composer.portion = btn.dataset.value;
+    renderComposer();
+  });
+  ui.densityChips.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-value]');
+    if (!btn) return;
+    state.composer.density = btn.dataset.value;
+    renderComposer();
+  });
 
-function wireEvents() {
-  [ui.quickPresetGrid, ui.quickStickyGrid].forEach((grid) => {
-    grid.addEventListener('click', (event) => {
-      const btn = event.target.closest('button[data-preset-calories]');
-      if (!btn) return;
-      handleQuickAdd(Number(btn.dataset.presetCalories), btn.dataset.presetType || 'quick');
+  ui.smartAddBtn.addEventListener('click', async () => {
+    await addEntry(makePayloadFromComposer());
+  });
+
+  document.querySelectorAll('[data-target-adjust]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const delta = Number(btn.dataset.targetAdjust);
+      const next = Math.max(800, state.dailyTarget + delta);
+      await store.saveTarget(next);
+      renderSummary();
+      showToast('Target updated');
     });
   });
 
-  ui.manualEntryBtn.addEventListener('click', () => openEntryModal({ mode: 'create' }));
-
   ui.historyList.addEventListener('click', async (event) => {
-    const button = event.target.closest('button[data-action]');
-    if (!button) return;
-    const entryId = button.dataset.id;
-    const targetEntry = state.entries.find((entry) => entry.id === entryId);
-    if (!targetEntry) return;
+    const btn = event.target.closest('button[data-action]');
+    if (!btn) return;
+    const entry = state.entries.find((item) => item.id === btn.dataset.id);
+    if (!entry) return;
 
-    if (button.dataset.action === 'edit') {
-      openEntryModal({ mode: 'edit', entry: targetEntry });
+    if (btn.dataset.action === 'edit') {
+      openEdit(entry);
       return;
     }
 
-    if (button.dataset.action === 'delete') {
-      try {
-        state.lastDeleted = targetEntry;
-        await store.deleteEntry(entryId);
-        await refreshEntries();
-        showToast('Entry deleted');
-      } catch (error) {
-        console.error(error);
-        showStatus('Could not delete entry.');
-      }
-    }
+    state.lastDeleted = { ...entry };
+    await store.deleteEntry(entry.id);
+    await refresh();
+    showToast('Deleted', true);
   });
 
-  ui.entryForm.addEventListener('submit', async (event) => {
+  ui.undoBtn.addEventListener('click', async () => {
+    if (!state.lastDeleted) return;
+    const { id, ...payload } = state.lastDeleted;
+    await addDoc(store.entriesCol(), { ...payload, updatedAt: serverTimestamp() });
+    state.lastDeleted = null;
+    await refresh();
+    showToast('Restored');
+  });
+
+  ui.themeBtn.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.contains('dark');
+    applyTheme(isDark ? 'light' : 'dark');
+  });
+
+  [
+    [ui.editTypeChips, 'mealType'],
+    [ui.editPortionChips, 'portion'],
+    [ui.editDensityChips, 'density']
+  ].forEach(([root, key]) => {
+    root.addEventListener('click', (event) => {
+      const btn = event.target.closest('button[data-value]');
+      if (!btn) return;
+      state.edit[key] = btn.dataset.value;
+      renderChipRow(root, key === 'mealType' ? DEFAULTS.mealTypes : key === 'portion' ? DEFAULTS.portions : DEFAULTS.densities, state.edit[key]);
+      updateEditCalories();
+    });
+  });
+
+  document.querySelectorAll('[data-edit-adjust]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.edit.manualDelta += Number(btn.dataset.editAdjust);
+      updateEditCalories();
+    });
+  });
+
+  ui.editForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const calories = Number(ui.entryCalories.value);
-    if (!Number.isFinite(calories) || calories <= 0) {
-      showStatus('Calories must be a positive number.');
-      return;
-    }
-    const payload = {
-      calories,
-      note: ui.entryNote.value,
-      quickType: ui.entryQuickType.value || 'manual'
-    };
-
-    try {
-      if (state.activeEntryId) {
-        await store.updateEntry(state.activeEntryId, payload);
-      } else {
-        await store.createEntry(payload);
-      }
-      closeEntryModal();
-      await refreshEntries();
-    } catch (error) {
-      console.error(error);
-      showStatus('Could not save entry changes.');
-    }
+    await store.updateEntry(state.edit.id, {
+      calories: state.edit.kcal,
+      mealType: state.edit.mealType,
+      portion: state.edit.portion,
+      density: state.edit.density,
+      manualDelta: state.edit.manualDelta
+    });
+    ui.editDialog.close();
+    await refresh();
+    showToast('Updated');
   });
 
-  ui.cancelEntryBtn.addEventListener('click', closeEntryModal);
-  ui.undoDeleteBtn.addEventListener('click', undoDelete);
+  ui.cancelEditBtn.addEventListener('click', () => ui.editDialog.close());
+}
 
-  ui.saveTargetBtn.addEventListener('click', async () => {
-    const nextTarget = Number(ui.dailyTargetInput.value);
-    if (!Number.isFinite(nextTarget) || nextTarget <= 0) {
-      showStatus('Target must be greater than zero.');
-      return;
-    }
-
-    try {
-      await store.saveSettings(nextTarget);
-      renderSummary();
-      showStatus('Daily target updated.');
-    } catch (error) {
-      console.error(error);
-      showStatus('Could not save settings.');
-    }
-  });
+async function initFirebase() {
+  const module = await import('./firebase-config.js');
+  if (!module.FIREBASE_CONFIG?.projectId) {
+    throw new Error('Set FIREBASE_CONFIG in firebase-config.js');
+  }
+  const app = initializeApp(module.FIREBASE_CONFIG);
+  state.db = getFirestore(app);
 }
 
 async function boot() {
-  renderPresets(ui.quickPresetGrid);
-  renderPresets(ui.quickStickyGrid);
-  wireEvents();
+  initTheme();
+  renderQuickActions();
+  renderComposer();
+  await bindEvents();
 
   try {
-    setLoading(true);
-    state.db = await firebaseModule.init();
-    await store.loadSettings();
-    await refreshEntries();
-    state.initialized = true;
+    await initFirebase();
+    await refresh();
   } catch (error) {
     console.error(error);
-    showStatus(error.message || 'App could not initialize.');
-    renderHistory();
-    renderSummary();
-  } finally {
-    setLoading(false);
+    ui.historyList.innerHTML = `<p class="muted">Firebase setup needed. Copy firebase-config.example.js to firebase-config.js and fill values.</p>`;
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
   }
 }
 

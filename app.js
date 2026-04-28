@@ -116,6 +116,7 @@ let fb = null; // populated after dynamic Firebase import
 const store = {
   entriesCollection: () => fb.collection(state.db, 'users', state.uid, 'entries'),
   settingsDoc: () => fb.doc(state.db, 'users', state.uid, 'settings', 'app'),
+  entryDoc: (entryId) => fb.doc(state.db, 'users', state.uid, 'entries', entryId),
 
   async loadSettings() {
     const snap = await fb.getDoc(this.settingsDoc());
@@ -147,14 +148,14 @@ const store = {
   },
 
   async updateEntry(entryId, payload) {
-    await fb.updateDoc(fb.doc(state.db, 'users', state.uid, 'entries', entryId), {
+    await fb.updateDoc(this.entryDoc(entryId), {
       ...payload,
       updatedAt: fb.serverTimestamp()
     });
   },
 
   async removeEntry(entryId) {
-    await fb.deleteDoc(fb.doc(state.db, 'users', state.uid, 'entries', entryId));
+    await fb.deleteDoc(this.entryDoc(entryId));
   }
 };
 
@@ -174,7 +175,7 @@ async function init() {
       import(FIREBASE_APP_URL),
       import(FIREBASE_FIRESTORE_URL)
     ]);
-    fb = { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc, updateDoc, where };
+    fb = { addDoc, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, orderBy, query, serverTimestamp, setDoc, updateDoc, where };
     const app = initializeApp(FIREBASE_CONFIG);
     state.db = getFirestore(app);
     await store.loadSettings();

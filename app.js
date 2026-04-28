@@ -1,19 +1,5 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  where
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+const FIREBASE_APP_URL = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+const FIREBASE_FIRESTORE_URL = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const MODEL = {
   mealMoments: [
@@ -125,48 +111,50 @@ const ui = {
   undoBtn: byId('undoBtn')
 };
 
+let fb = null; // populated after dynamic Firebase import
+
 const store = {
-  entriesCollection: () => collection(state.db, 'users', state.uid, 'entries'),
-  settingsDoc: () => doc(state.db, 'users', state.uid, 'settings', 'app'),
+  entriesCollection: () => fb.collection(state.db, 'users', state.uid, 'entries'),
+  settingsDoc: () => fb.doc(state.db, 'users', state.uid, 'settings', 'app'),
 
   async loadSettings() {
-    const snap = await getDoc(this.settingsDoc());
+    const snap = await fb.getDoc(this.settingsDoc());
     if (!snap.exists()) return;
     state.dailyTarget = Number(snap.data().dailyTarget || MODEL.defaultTarget);
   },
 
   async saveSettings(target) {
-    await setDoc(this.settingsDoc(), { dailyTarget: target, updatedAt: serverTimestamp() }, { merge: true });
+    await fb.setDoc(this.settingsDoc(), { dailyTarget: target, updatedAt: fb.serverTimestamp() }, { merge: true });
   },
 
   async loadTodayEntries() {
-    const q = query(
+    const q = fb.query(
       this.entriesCollection(),
-      where('entryDate', '==', state.todayKey),
-      orderBy('createdAt', 'desc')
+      fb.where('entryDate', '==', state.todayKey),
+      fb.orderBy('createdAt', 'desc')
     );
-    const snap = await getDocs(q);
+    const snap = await fb.getDocs(q);
     state.entries = snap.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
   },
 
   async addEntry(payload) {
-    await addDoc(this.entriesCollection(), {
+    await fb.addDoc(this.entriesCollection(), {
       ...payload,
       entryDate: state.todayKey,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      createdAt: fb.serverTimestamp(),
+      updatedAt: fb.serverTimestamp()
     });
   },
 
   async updateEntry(entryId, payload) {
-    await updateDoc(doc(this.entriesCollection(), entryId), {
+    await fb.updateDoc(fb.doc(state.db, 'users', state.uid, 'entries', entryId), {
       ...payload,
-      updatedAt: serverTimestamp()
+      updatedAt: fb.serverTimestamp()
     });
   },
 
   async removeEntry(entryId) {
-    await deleteDoc(doc(this.entriesCollection(), entryId));
+    await fb.deleteDoc(fb.doc(state.db, 'users', state.uid, 'entries', entryId));
   }
 };
 
@@ -178,7 +166,15 @@ async function init() {
   renderEstimate();
 
   try {
-    const { FIREBASE_CONFIG } = await import('./firebase-config.js');
+    const [{ FIREBASE_CONFIG }, { initializeApp }, {
+      addDoc, collection, deleteDoc, doc, getDoc, getDocs,
+      getFirestore, orderBy, query, serverTimestamp, setDoc, updateDoc, where
+    }] = await Promise.all([
+      import('./firebase-config.js'),
+      import(FIREBASE_APP_URL),
+      import(FIREBASE_FIRESTORE_URL)
+    ]);
+    fb = { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc, updateDoc, where };
     const app = initializeApp(FIREBASE_CONFIG);
     state.db = getFirestore(app);
     await store.loadSettings();

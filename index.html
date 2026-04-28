@@ -2,95 +2,138 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>20 Pounds — Calorie Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+    <title>20 Pounds • Calorie Tracker</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/icon.svg" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div id="app" class="app-shell">
-      <header class="card header-card">
-        <p id="todayDate" class="muted">Today</p>
-        <div class="header-total-wrap">
-          <p class="muted">Total calories</p>
-          <h1 id="todayTotal" class="hero-total">0</h1>
+    <div class="app-shell">
+      <header class="top-bar">
+        <div>
+          <p class="muted" id="todayLabel">Today</p>
+          <h1 id="todayTotal">0 kcal</h1>
         </div>
+        <button id="toggleHistoryBtn" class="icon-btn" type="button" aria-label="Show history and settings">☰</button>
       </header>
 
-      <main class="main-content">
-        <section class="card target-card" aria-labelledby="targetTitle">
+      <section class="goal-card" aria-labelledby="goalTitle">
+        <div>
+          <p id="goalTitle" class="goal-title">Daily target</p>
+          <p id="goalDetail" class="goal-detail">0 / 2200 kcal</p>
+        </div>
+        <div class="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="goalProgressWrap">
+          <div id="goalProgress" class="progress-fill"></div>
+        </div>
+        <p id="goalStatus" class="goal-status">You're just getting started.</p>
+      </section>
+
+      <main class="entry-screen" aria-labelledby="quickEntryTitle">
+        <section class="entry-card">
+          <h2 id="quickEntryTitle">Quick entry</h2>
+          <p class="muted">One tap preset, or 2-3 taps to tune the estimate.</p>
+
           <div>
-            <h2 id="targetTitle">Daily target</h2>
-            <p id="targetText" class="muted">0 / 2000 kcal</p>
+            <p class="subheading">Smart presets</p>
+            <div class="quick-grid" id="presetGrid"></div>
           </div>
-          <div class="ring-wrap" aria-hidden="true">
-            <svg class="progress-ring" viewBox="0 0 120 120" role="img">
-              <circle class="ring-track" cx="60" cy="60" r="50"></circle>
-              <circle id="ringProgress" class="ring-progress" cx="60" cy="60" r="50"></circle>
-            </svg>
-            <span id="targetPct" class="ring-label">0%</span>
-          </div>
-          <div class="bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <div id="targetBar" class="bar-fill"></div>
-          </div>
-        </section>
 
-        <section class="card quick-card" aria-labelledby="quickTitle">
-          <h2 id="quickTitle">Quick add</h2>
-          <p class="muted">Tap once to log, twice if adding a note.</p>
-          <div id="quickPresetGrid" class="quick-grid"></div>
-          <label class="field-label" for="quickNote">Quick note (optional)</label>
-          <input id="quickNote" class="text-input" type="text" maxlength="80" placeholder="e.g., breakfast burrito" />
-          <button id="manualEntryBtn" class="secondary-btn" type="button">Manual entry</button>
-        </section>
-
-        <section class="card history-card" aria-labelledby="historyTitle">
-          <div class="history-heading">
-            <h2 id="historyTitle">Today’s entries</h2>
-            <span id="entryCount" class="muted">0 items</span>
+          <div>
+            <p class="subheading">Meal moment</p>
+            <div class="chip-grid" id="mealTypeGrid"></div>
           </div>
-          <div id="historyList" class="history-list" aria-live="polite"></div>
-        </section>
 
-        <section class="card settings-card" aria-labelledby="settingsTitle">
-          <h2 id="settingsTitle">Settings</h2>
-          <label for="dailyTargetInput" class="field-label">Daily calorie target</label>
-          <div class="settings-row">
-            <input id="dailyTargetInput" class="text-input" type="number" min="1" step="1" inputmode="numeric" />
-            <button id="saveTargetBtn" class="primary-btn" type="button">Save</button>
+          <div class="split-grid">
+            <div>
+              <p class="subheading">Portion</p>
+              <div class="chip-grid" id="portionGrid"></div>
+            </div>
+            <div>
+              <p class="subheading">Density</p>
+              <div class="chip-grid" id="densityGrid"></div>
+            </div>
           </div>
+
+          <div>
+            <p class="subheading">Add-ons (optional)</p>
+            <div class="chip-grid" id="addonGrid"></div>
+          </div>
+
+          <section class="estimate-card" aria-live="polite">
+            <p class="estimate-label" id="estimateBreakdown">Base 0 + extras 0</p>
+            <p id="estimateValue" class="estimate-value">450</p>
+            <button id="saveEntryBtn" class="primary-btn" type="button">Add entry</button>
+          </section>
         </section>
       </main>
-
-      <div id="quickSticky" class="sticky-quick card">
-        <div id="quickStickyGrid" class="quick-grid"></div>
-      </div>
-
-      <div id="toast" class="toast" role="status" aria-live="polite">
-        <span id="toastMessage">Entry deleted.</span>
-        <button id="undoDeleteBtn" class="link-btn" type="button">Undo</button>
-      </div>
-
-      <div id="statusBanner" class="status-banner" hidden></div>
     </div>
 
-    <dialog id="entryModal" class="entry-modal">
-      <form id="entryForm" method="dialog" class="entry-form">
-        <h3 id="entryModalTitle">Edit entry</h3>
-        <label for="entryCalories" class="field-label">Calories</label>
-        <input id="entryCalories" class="text-input" type="number" min="1" step="1" required />
+    <aside id="historySheet" class="history-sheet" aria-hidden="true">
+      <div class="sheet-header">
+        <h2>Entries</h2>
+        <button id="closeHistoryBtn" class="icon-btn" type="button" aria-label="Close history">✕</button>
+      </div>
 
-        <label for="entryNote" class="field-label">Note</label>
-        <input id="entryNote" class="text-input" type="text" maxlength="120" />
+      <section class="sheet-section">
+        <label for="targetSelect" class="subheading">Daily target</label>
+        <select id="targetSelect" class="select-input">
+          <option value="1600">1600 kcal</option>
+          <option value="1800">1800 kcal</option>
+          <option value="2000">2000 kcal</option>
+          <option value="2200">2200 kcal</option>
+          <option value="2400">2400 kcal</option>
+          <option value="2600">2600 kcal</option>
+          <option value="2800">2800 kcal</option>
+        </select>
+      </section>
 
-        <label for="entryQuickType" class="field-label">Type</label>
-        <input id="entryQuickType" class="text-input" type="text" maxlength="32" />
+      <section class="sheet-section">
+        <div class="history-heading">
+          <p class="subheading">Today’s history</p>
+          <p id="entryCount" class="muted">0 entries</p>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </aside>
 
-        <div class="modal-actions">
-          <button id="cancelEntryBtn" type="button" class="secondary-btn">Cancel</button>
-          <button id="saveEntryBtn" type="submit" class="primary-btn">Save changes</button>
+    <dialog id="editDialog" class="edit-dialog">
+      <form id="editForm" class="edit-form" method="dialog">
+        <h3>Edit entry</h3>
+        <div>
+          <p class="subheading">Meal moment</p>
+          <div id="editMealGrid" class="chip-grid"></div>
+        </div>
+        <div class="split-grid">
+          <div>
+            <p class="subheading">Portion</p>
+            <div id="editPortionGrid" class="chip-grid"></div>
+          </div>
+          <div>
+            <p class="subheading">Density</p>
+            <div id="editDensityGrid" class="chip-grid"></div>
+          </div>
+        </div>
+        <div>
+          <p class="subheading">Add-ons</p>
+          <div id="editAddonGrid" class="chip-grid"></div>
+        </div>
+        <p class="estimate-label">Updated estimate: <strong id="editEstimateValue">450</strong> kcal</p>
+        <div class="dialog-actions">
+          <button id="cancelEditBtn" type="button" class="ghost-btn">Cancel</button>
+          <button id="saveEditBtn" type="submit" class="primary-btn">Save</button>
         </div>
       </form>
     </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite">
+      <span id="toastText">Deleted.</span>
+      <button id="undoBtn" class="undo-btn" type="button">Undo</button>
+    </div>
 
     <script type="module" src="app.js"></script>
   </body>

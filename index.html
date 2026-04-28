@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>20 Pounds — Calorie Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <header class="card header-card">
+        <p id="todayDate" class="muted">Today</p>
+        <div class="header-total-wrap">
+          <p class="muted">Total calories</p>
+          <h1 id="todayTotal" class="hero-total">0</h1>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <section class="card target-card" aria-labelledby="targetTitle">
+          <div>
+            <h2 id="targetTitle">Daily target</h2>
+            <p id="targetText" class="muted">0 / 2000 kcal</p>
+          </div>
+          <div class="ring-wrap" aria-hidden="true">
+            <svg class="progress-ring" viewBox="0 0 120 120" role="img">
+              <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+              <circle id="ringProgress" class="ring-progress" cx="60" cy="60" r="50"></circle>
+            </svg>
+            <span id="targetPct" class="ring-label">0%</span>
+          </div>
+          <div class="bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="targetBar" class="bar-fill"></div>
+          </div>
+        </section>
+
+        <section class="card quick-card" aria-labelledby="quickTitle">
+          <h2 id="quickTitle">Quick add</h2>
+          <p class="muted">Tap once to log, twice if adding a note.</p>
+          <div id="quickPresetGrid" class="quick-grid"></div>
+          <label class="field-label" for="quickNote">Quick note (optional)</label>
+          <input id="quickNote" class="text-input" type="text" maxlength="80" placeholder="e.g., breakfast burrito" />
+          <button id="manualEntryBtn" class="secondary-btn" type="button">Manual entry</button>
+        </section>
+
+        <section class="card history-card" aria-labelledby="historyTitle">
+          <div class="history-heading">
+            <h2 id="historyTitle">Today’s entries</h2>
+            <span id="entryCount" class="muted">0 items</span>
+          </div>
+          <div id="historyList" class="history-list" aria-live="polite"></div>
+        </section>
+
+        <section class="card settings-card" aria-labelledby="settingsTitle">
+          <h2 id="settingsTitle">Settings</h2>
+          <label for="dailyTargetInput" class="field-label">Daily calorie target</label>
+          <div class="settings-row">
+            <input id="dailyTargetInput" class="text-input" type="number" min="1" step="1" inputmode="numeric" />
+            <button id="saveTargetBtn" class="primary-btn" type="button">Save</button>
+          </div>
+        </section>
+      </main>
+
+      <div id="quickSticky" class="sticky-quick card">
+        <div id="quickStickyGrid" class="quick-grid"></div>
+      </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite">
+        <span id="toastMessage">Entry deleted.</span>
+        <button id="undoDeleteBtn" class="link-btn" type="button">Undo</button>
+      </div>
+
+      <div id="statusBanner" class="status-banner" hidden></div>
+    </div>
+
+    <dialog id="entryModal" class="entry-modal">
+      <form id="entryForm" method="dialog" class="entry-form">
+        <h3 id="entryModalTitle">Edit entry</h3>
+        <label for="entryCalories" class="field-label">Calories</label>
+        <input id="entryCalories" class="text-input" type="number" min="1" step="1" required />
+
+        <label for="entryNote" class="field-label">Note</label>
+        <input id="entryNote" class="text-input" type="text" maxlength="120" />
+
+        <label for="entryQuickType" class="field-label">Type</label>
+        <input id="entryQuickType" class="text-input" type="text" maxlength="32" />
+
+        <div class="modal-actions">
+          <button id="cancelEntryBtn" type="button" class="secondary-btn">Cancel</button>
+          <button id="saveEntryBtn" type="submit" class="primary-btn">Save changes</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

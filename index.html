@@ -4,134 +4,191 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
-    <title>20 Pounds • Calorie Tracker</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#080c14" />
+    <title>20 Pounds</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icons/icon.svg" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="top-bar">
-        <div>
-          <p class="muted" id="todayLabel">Today</p>
-          <h1 id="todayTotal">0 kcal</h1>
-        </div>
-        <button id="toggleHistoryBtn" class="icon-btn" type="button" aria-label="Show history and settings">☰</button>
-      </header>
 
-      <section class="goal-card" aria-labelledby="goalTitle">
-        <div>
-          <p id="goalTitle" class="goal-title">Daily target</p>
-          <p id="goalDetail" class="goal-detail">0 / 2200 kcal</p>
-        </div>
-        <div class="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="goalProgressWrap">
-          <div id="goalProgress" class="progress-fill"></div>
-        </div>
-        <p id="goalStatus" class="goal-status">You're just getting started.</p>
-      </section>
-
-      <main class="entry-screen" aria-labelledby="quickEntryTitle">
-        <section class="entry-card">
-          <h2 id="quickEntryTitle">Quick entry</h2>
-          <p class="muted">One tap preset, or 2-3 taps to tune the estimate.</p>
-
+    <!-- ═══════════════ HOME PAGE ═══════════════ -->
+    <div class="page active" id="page-home">
+      <div class="page-scroll">
+        <header class="home-header">
           <div>
-            <p class="subheading">Smart presets</p>
-            <div class="quick-grid" id="presetGrid"></div>
+            <p class="greeting" id="greeting">Good morning</p>
+            <p class="date-label" id="dateLabel">Today</p>
           </div>
+          <button class="icon-btn" id="settingsShortcut" aria-label="Settings">⚙</button>
+        </header>
 
-          <div>
-            <p class="subheading">Meal moment</p>
-            <div class="chip-grid" id="mealTypeGrid"></div>
-          </div>
-
-          <div class="split-grid">
-            <div>
-              <p class="subheading">Portion</p>
-              <div class="chip-grid" id="portionGrid"></div>
-            </div>
-            <div>
-              <p class="subheading">Density</p>
-              <div class="chip-grid" id="densityGrid"></div>
+        <!-- Calorie ring -->
+        <div class="ring-section">
+          <div class="ring-wrap">
+            <svg class="ring-svg" viewBox="0 0 220 220" aria-hidden="true">
+              <circle class="ring-track" cx="110" cy="110" r="90" />
+              <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="90" />
+            </svg>
+            <div class="ring-center">
+              <p class="ring-consumed" id="ringConsumed">0</p>
+              <p class="ring-unit">kcal today</p>
+              <p class="ring-remaining" id="ringRemaining">-- left</p>
             </div>
           </div>
+        </div>
 
-          <div>
-            <p class="subheading">Add-ons (optional)</p>
-            <div class="chip-grid" id="addonGrid"></div>
+        <!-- Meal breakdown -->
+        <div class="meal-row" id="mealRow"></div>
+
+        <!-- Today entries -->
+        <div class="section-row">
+          <p class="section-title">Today</p>
+          <p class="entry-count muted" id="homeEntryCount">0 entries</p>
+        </div>
+        <div class="entry-list" id="homeEntryList">
+          <div class="empty-state">
+            <p class="empty-icon">🍽</p>
+            <p class="empty-text">Nothing logged yet.</p>
+            <p class="empty-sub">Tap Log to add your first meal.</p>
           </div>
-
-          <section class="estimate-card" aria-live="polite">
-            <p class="estimate-label" id="estimateBreakdown">Base 0 + extras 0</p>
-            <p id="estimateValue" class="estimate-value">450</p>
-            <button id="saveEntryBtn" class="primary-btn" type="button">Add entry</button>
-          </section>
-        </section>
-      </main>
+        </div>
+      </div>
     </div>
 
-    <aside id="historySheet" class="history-sheet" aria-hidden="true">
-      <div class="sheet-header">
-        <h2>Entries</h2>
-        <button id="closeHistoryBtn" class="icon-btn" type="button" aria-label="Close history">✕</button>
+    <!-- ═══════════════ LOG PAGE ═══════════════ -->
+    <div class="page" id="page-log">
+      <div class="page-scroll">
+        <header>
+          <h1 class="page-title">Log a meal</h1>
+          <p class="page-sub muted">Pick a preset or build your own estimate.</p>
+        </header>
+
+        <div class="preset-section">
+          <p class="group-label">Quick presets</p>
+          <div class="preset-grid" id="presetGrid"></div>
+        </div>
+
+        <div class="tune-card">
+          <p class="group-label">Fine-tune</p>
+          <div class="tune-group">
+            <p class="tune-label">Meal moment</p>
+            <div class="pill-row" id="mealMomentRow"></div>
+          </div>
+          <div class="tune-pair">
+            <div class="tune-group">
+              <p class="tune-label">Portion</p>
+              <div class="pill-row" id="portionRow"></div>
+            </div>
+            <div class="tune-group">
+              <p class="tune-label">Density</p>
+              <div class="pill-row" id="densityRow"></div>
+            </div>
+          </div>
+          <div class="tune-group">
+            <p class="tune-label">Add-ons</p>
+            <div class="pill-row pill-wrap" id="addonRow"></div>
+          </div>
+        </div>
+
+        <div class="estimate-card">
+          <div class="estimate-main">
+            <span class="estimate-num" id="estimateNum">580</span>
+            <span class="estimate-unit muted">kcal</span>
+          </div>
+          <p class="estimate-breakdown muted" id="estimateBreakdown">Base 580 &middot; +0 extras</p>
+          <button class="add-btn" id="addEntryBtn" type="button">Add to today</button>
+        </div>
       </div>
+    </div>
 
-      <section class="sheet-section">
-        <label for="targetSelect" class="subheading">Daily target</label>
-        <select id="targetSelect" class="select-input">
-          <option value="1600">1600 kcal</option>
-          <option value="1800">1800 kcal</option>
-          <option value="2000">2000 kcal</option>
-          <option value="2200">2200 kcal</option>
-          <option value="2400">2400 kcal</option>
-          <option value="2600">2600 kcal</option>
-          <option value="2800">2800 kcal</option>
-        </select>
-      </section>
-
-      <section class="sheet-section">
-        <div class="history-heading">
-          <p class="subheading">Today’s history</p>
-          <p id="entryCount" class="muted">0 entries</p>
+    <!-- ═══════════════ HISTORY PAGE ═══════════════ -->
+    <div class="page" id="page-history">
+      <div class="page-scroll">
+        <header>
+          <h1 class="page-title">History</h1>
+          <p class="page-sub muted" id="historyDateLabel">Today</p>
+        </header>
+        <div class="stats-row" id="historySummary"></div>
+        <div class="entry-list" id="historyList">
+          <div class="empty-state">
+            <p class="empty-icon">📋</p>
+            <p class="empty-text">No entries today.</p>
+          </div>
         </div>
-        <div id="historyList" class="history-list"></div>
-      </section>
-    </aside>
+      </div>
+    </div>
 
+    <!-- ═══════════════ SETTINGS PAGE ═══════════════ -->
+    <div class="page" id="page-settings">
+      <div class="page-scroll">
+        <header>
+          <h1 class="page-title">Settings</h1>
+        </header>
+        <div class="settings-card">
+          <p class="group-label">Daily calorie target</p>
+          <div class="target-grid" id="targetGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ BOTTOM NAV ═══════════════ -->
+    <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+      <button class="nav-btn active" data-page="home" type="button" aria-label="Home">
+        <span class="nav-icon">◎</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-btn" data-page="log" type="button" aria-label="Log meal">
+        <span class="nav-icon nav-plus">+</span>
+        <span class="nav-label">Log</span>
+      </button>
+      <button class="nav-btn" data-page="history" type="button" aria-label="History">
+        <span class="nav-icon">☰</span>
+        <span class="nav-label">History</span>
+      </button>
+      <button class="nav-btn" data-page="settings" type="button" aria-label="Settings">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+
+    <!-- ═══════════════ EDIT DIALOG ═══════════════ -->
     <dialog id="editDialog" class="edit-dialog">
-      <form id="editForm" class="edit-form" method="dialog">
-        <h3>Edit entry</h3>
-        <div>
-          <p class="subheading">Meal moment</p>
-          <div id="editMealGrid" class="chip-grid"></div>
+      <form id="editForm" method="dialog">
+        <div class="dialog-header">
+          <h3>Edit entry</h3>
+          <button type="button" id="cancelEditBtn" class="icon-btn" aria-label="Close">✕</button>
         </div>
-        <div class="split-grid">
-          <div>
-            <p class="subheading">Portion</p>
-            <div id="editPortionGrid" class="chip-grid"></div>
+        <div class="tune-group">
+          <p class="tune-label">Meal moment</p>
+          <div class="pill-row" id="editMealRow"></div>
+        </div>
+        <div class="tune-pair">
+          <div class="tune-group">
+            <p class="tune-label">Portion</p>
+            <div class="pill-row" id="editPortionRow"></div>
           </div>
-          <div>
-            <p class="subheading">Density</p>
-            <div id="editDensityGrid" class="chip-grid"></div>
+          <div class="tune-group">
+            <p class="tune-label">Density</p>
+            <div class="pill-row" id="editDensityRow"></div>
           </div>
         </div>
-        <div>
-          <p class="subheading">Add-ons</p>
-          <div id="editAddonGrid" class="chip-grid"></div>
+        <div class="tune-group">
+          <p class="tune-label">Add-ons</p>
+          <div class="pill-row pill-wrap" id="editAddonRow"></div>
         </div>
-        <p class="estimate-label">Updated estimate: <strong id="editEstimateValue">450</strong> kcal</p>
+        <p class="estimate-label muted">Estimate: <strong id="editEstimateValue">0</strong> kcal</p>
         <div class="dialog-actions">
-          <button id="cancelEditBtn" type="button" class="ghost-btn">Cancel</button>
-          <button id="saveEditBtn" type="submit" class="primary-btn">Save</button>
+          <button type="button" id="deleteEditBtn" class="danger-btn">Delete</button>
+          <button type="submit" id="saveEditBtn" class="save-btn">Save</button>
         </div>
       </form>
     </dialog>
 
+    <!-- ═══════════════ TOAST ═══════════════ -->
     <div id="toast" class="toast" role="status" aria-live="polite">
-      <span id="toastText">Deleted.</span>
+      <span id="toastText">Saved.</span>
       <button id="undoBtn" class="undo-btn" type="button">Undo</button>
     </div>
 

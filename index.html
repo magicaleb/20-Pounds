@@ -3,34 +3,132 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#fff7ed" />
-    <title>Quick Calories</title>
+    <meta name="theme-color" content="#ff4d6d" />
+    <title>20 Pounds</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="app">
-      <header class="topbar">
-        <div class="brand"><h1>Quick Calories</h1><p>Fast enough to actually use.</p></div>
-        <div class="top-actions"><button class="icon-button" id="themeToggle" aria-label="Toggle dark mode">☾</button></div>
-      </header>
 
       <section class="page active" id="entryPage">
         <div class="entry-shell">
-          <div class="step active" id="stepFilters"><div class="step-head"><div><h2 class="step-title">What was it most like?</h2><p class="step-help">Tap one or more blocks to narrow the food list.</p></div><span class="step-pill">1/3</span></div><div class="block-grid" id="categoryGrid"></div><div class="step-actions"><button class="primary-button" id="toSearchButton" type="button">Search foods</button></div></div>
-          <div class="step" id="stepSearch"><div class="step-head"><div><h2 class="step-title">Pick the closest match</h2><p class="step-help">Only this results list scrolls. Search updates live.</p></div><span class="step-pill">2/3</span></div><div class="search-box"><input class="field" id="foodSearch" placeholder="Search food or meal" autocomplete="off" /><div class="selected-filters" id="selectedFilters"></div></div><div class="results-list" id="resultsList"></div><div class="step-actions"><button class="secondary-button" id="backToFilters" type="button">Back</button></div></div>
-          <div class="step" id="stepPortion"><div class="step-head"><div><h2 class="step-title">Compare and log</h2><p class="step-help">Use the comparison chips to judge your portion.</p></div><span class="step-pill">3/3</span></div><div class="selected-food-card"><h3 id="selectedFoodName">Food</h3><div class="subtle" id="selectedFoodCategory">Category</div><div class="big-cal"><span id="selectedCalories">0</span> cal</div><div class="reference">Compare it to:</div><div class="compare-list" id="compareList"></div></div><div class="portion-grid" id="portionGrid"></div><div class="cal-adjust"><button class="adjust-btn" data-adjust="-100" type="button">−100</button><button class="adjust-btn" data-adjust="-50" type="button">−50</button><button class="adjust-btn" data-adjust="50" type="button">+50</button><button class="adjust-btn" data-adjust="100" type="button">+100</button></div><div class="field-row"><input class="field" id="noteInput" maxlength="42" placeholder="Optional note" /><input class="field" id="manualCalories" type="number" inputmode="numeric" min="0" step="25" placeholder="Cal" /></div><div class="step-actions"><button class="secondary-button" id="backToSearch" type="button">Back</button><button class="primary-button" id="addButton" type="button">Add entry</button></div></div>
+          <div class="step active" id="stepFilters">
+            <div class="step-head">
+              <div><h2 class="step-title">What did you eat?</h2><p class="step-help">Tap a category to filter, or skip straight to search.</p></div>
+              <span class="step-pill">1 / 3</span>
+            </div>
+            <div class="block-grid" id="categoryGrid"></div>
+            <div class="step-actions"><button class="primary-button" id="toSearchButton" type="button">Search foods →</button></div>
+          </div>
+
+          <div class="step" id="stepSearch">
+            <div class="step-head">
+              <div><h2 class="step-title">Pick the closest match</h2><p class="step-help">Tap to select. Search updates live.</p></div>
+              <span class="step-pill">2 / 3</span>
+            </div>
+            <div class="search-box">
+              <input class="field" id="foodSearch" placeholder="Type to search…" autocomplete="off" />
+              <div class="selected-filters" id="selectedFilters"></div>
+            </div>
+            <div class="results-list" id="resultsList"></div>
+            <div class="step-actions"><button class="secondary-button" id="backToFilters" type="button">← Back</button></div>
+          </div>
+
+          <div class="step" id="stepPortion">
+            <div class="step-head">
+              <div><h2 class="step-title">How much?</h2><p class="step-help">Pick a size. Nudge the calories if needed.</p></div>
+              <span class="step-pill">3 / 3</span>
+            </div>
+            <div class="selected-food-card">
+              <div class="sfc-top">
+                <div>
+                  <div class="sfc-name" id="selectedFoodName">Food</div>
+                  <div class="sfc-cat" id="selectedFoodCategory">Category</div>
+                </div>
+                <div class="big-cal"><span id="selectedCalories">0</span><span class="cal-unit">cal</span></div>
+              </div>
+              <div class="compare-list" id="compareList"></div>
+            </div>
+            <div class="portion-grid" id="portionGrid"></div>
+            <div class="cal-adjust">
+              <button class="adjust-btn minus" data-adjust="-100" type="button">−100</button>
+              <button class="adjust-btn minus" data-adjust="-50" type="button">−50</button>
+              <button class="adjust-btn plus" data-adjust="50" type="button">+50</button>
+              <button class="adjust-btn plus" data-adjust="100" type="button">+100</button>
+            </div>
+            <input class="field note-field" id="noteInput" maxlength="42" placeholder="Optional note…" />
+            <div class="step-actions">
+              <button class="secondary-button" id="backToSearch" type="button">← Back</button>
+              <button class="primary-button" id="addButton" type="button">Log it ✓</button>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section class="page" id="dashboardPage"><div class="dashboard"><section class="hero" aria-label="Today's calorie summary"><div class="hero-top"><div><p class="label">Today</p><div><span class="total" id="todayTotal">0</span><span class="unit">cal</span></div></div><button class="target-pill" id="targetButton" type="button">Target<br /><span id="targetValue">2200</span></button></div><div class="progress-wrap"><div class="progress-text"><span id="remainingText">2,200 left</span><span id="progressText">0%</span></div><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div></div></section><section class="card"><div class="toolbar"><div><h2>Controls</h2><div class="subtle">Target, custom entries, backup.</div></div></div><div class="field-row"><input class="field" id="targetInput" type="number" inputmode="numeric" min="1" step="50" /><button class="secondary-button" id="saveTargetButton" type="button">Save</button></div><button class="primary-button full" id="customButton" type="button">Custom entry</button><button class="secondary-button full" id="exportButton" type="button">Export data</button><button class="secondary-button full" id="clearOldButton" type="button">Clear entries before today</button></section><section class="card history-card"><div class="toolbar"><div><h2>History</h2><div class="subtle" id="entryCount">No entries yet</div></div><button class="secondary-button" id="showAllButton" type="button">Show all</button></div><div class="history-list" id="historyList"></div></section></div></section>
+      <section class="page" id="dashboardPage">
+        <div class="dashboard">
+          <section class="hero" aria-label="Today's calorie summary">
+            <div class="hero-top">
+              <div>
+                <p class="label">Today</p>
+                <div class="total-wrap"><span class="total" id="todayTotal">0</span><span class="unit">cal</span></div>
+              </div>
+              <button class="target-pill" id="targetButton" type="button">Goal<br /><span id="targetValue">2200</span></button>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-text"><span id="remainingText">2,200 left</span><span id="progressText">0%</span></div>
+              <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+          </section>
+
+          <section class="card controls-card">
+            <div class="toolbar"><div><h2>Settings</h2></div></div>
+            <div class="field-row">
+              <input class="field" id="targetInput" type="number" inputmode="numeric" min="1" step="50" placeholder="Daily goal (cal)" />
+              <button class="secondary-button" id="saveTargetButton" type="button">Save</button>
+            </div>
+            <button class="primary-button full" id="customButton" type="button">+ Custom entry</button>
+            <button class="secondary-button full" id="exportButton" type="button">Export data</button>
+            <button class="secondary-button full danger" id="clearOldButton" type="button">Clear old entries</button>
+          </section>
+
+          <section class="card history-card">
+            <div class="toolbar">
+              <div><h2>History</h2><div class="entry-count" id="entryCount">No entries yet</div></div>
+              <button class="secondary-button" id="showAllButton" type="button" style="display:none">Show all</button>
+            </div>
+            <div class="history-list" id="historyList"></div>
+          </section>
+        </div>
+      </section>
     </main>
 
-    <nav class="tabs" aria-label="App navigation"><button class="tab active" id="entryTab" type="button">Log food</button><button class="tab" id="dashboardTab" type="button">Dashboard</button></nav>
+    <nav class="tabs" aria-label="App navigation">
+      <button class="tab active" id="entryTab" type="button">🍽 Log food</button>
+      <button class="tab" id="dashboardTab" type="button">📊 Dashboard</button>
+    </nav>
 
-    <div class="modal-backdrop" id="entryModal" role="dialog" aria-modal="true" aria-label="Edit calorie entry"><div class="modal"><div class="modal-header"><h3 id="modalTitle">Edit entry</h3><button class="icon-button" id="closeModalButton" type="button" aria-label="Close">×</button></div><div class="section-label">Calories</div><input class="field" id="modalCalories" type="number" inputmode="numeric" min="0" step="25" /><div class="section-label">Note</div><input class="field" id="modalNote" maxlength="64" /><div class="section-label">Type</div><select class="field" id="modalType"></select><button class="primary-button full" id="saveEntryButton" type="button">Save entry</button></div></div>
+    <div class="modal-backdrop" id="entryModal" role="dialog" aria-modal="true" aria-label="Edit calorie entry">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modalTitle">Edit entry</h3>
+          <button class="icon-button" id="closeModalButton" type="button" aria-label="Close">×</button>
+        </div>
+        <div class="section-label">Calories</div>
+        <input class="field" id="modalCalories" type="number" inputmode="numeric" min="0" step="25" />
+        <div class="section-label">Food / Note</div>
+        <input class="field" id="modalNote" maxlength="64" />
+        <div class="section-label">Meal</div>
+        <select class="field" id="modalType"></select>
+        <div class="modal-actions">
+          <button class="primary-button" id="saveEntryButton" type="button">Save</button>
+          <button class="delete-button" id="deleteEntryButton" type="button">Delete</button>
+        </div>
+      </div>
+    </div>
 
-    <div class="toast" id="toast"><span id="toastText">Deleted</span><button id="undoButton" type="button">Undo</button></div>
+    <div class="toast" id="toast"><span id="toastText">Saved</span><button id="undoButton" type="button">Undo</button></div>
 
     <script src="app.js"></script>
   </body>

@@ -1,41 +1,14 @@
-# Calorie Flow (Firebase + Firestore)
+# Quick Calories (Local)
 
-Mobile-first personal calorie tracker focused on **low-friction heuristic logging**.
+This app is now a fully local single-page calorie quick-log.
 
-## What this version includes
+## Stack
+- `index.html` for structure
+- `styles.css` for UI styling
+- `app.js` for app behavior and `localStorage` persistence
 
-- One-tap quick calorie estimates
-- Smart heuristic estimator (type + portion + density)
-- Daily total and target progress bar
-- Firestore cloud save/load
-- Entry history with timestamps
-- Edit and delete entry flows
-- Undo last delete
-- Light/dark mode toggle
-- PWA install support for iPhone/web
+## Run locally
+Open `index.html` in a browser, or serve the folder with any static server.
 
-## Firebase setup
-
-1. Copy config template:
-
-```bash
-cp firebase-config.example.js firebase-config.js
-```
-
-2. Fill in values inside `firebase-config.js` from Firebase console.
-3. Ensure Firestore is enabled.
-4. Deploy:
-
-```bash
-firebase deploy --only hosting,firestore:rules,firestore:indexes
-```
-
-## Local preview
-
-You can use any static server (for UI only):
-
-```bash
-python -m http.server 8080
-```
-
-Then open <http://localhost:8080>.
+## Data storage
+Entries are stored in browser local storage under `calorieQuickLog.v1`.

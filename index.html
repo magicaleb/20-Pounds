@@ -105,8 +105,8 @@
     </main>
 
     <nav class="tabs" aria-label="App navigation">
-      <button class="tab active" id="entryTab" type="button">🍽 Log food</button>
-      <button class="tab" id="dashboardTab" type="button">📊 Dashboard</button>
+      <button class="tab active" id="entryTab" type="button"><span aria-hidden="true">🍽 </span>Log food</button>
+      <button class="tab" id="dashboardTab" type="button"><span aria-hidden="true">📊 </span>Dashboard</button>
     </nav>
 
     <div class="modal-backdrop" id="entryModal" role="dialog" aria-modal="true" aria-label="Edit calorie entry">
@@ -117,8 +117,10 @@
         </div>
         <div class="section-label">Calories</div>
         <input class="field" id="modalCalories" type="number" inputmode="numeric" min="0" step="25" />
-        <div class="section-label">Food / Note</div>
-        <input class="field" id="modalNote" maxlength="64" />
+        <div class="section-label">Food name</div>
+        <input class="field" id="modalFood" maxlength="64" placeholder="e.g. Chicken sandwich" />
+        <div class="section-label">Note <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+        <input class="field" id="modalNote" maxlength="64" placeholder="e.g. extra sauce" />
         <div class="section-label">Meal</div>
         <select class="field" id="modalType"></select>
         <div class="modal-actions">

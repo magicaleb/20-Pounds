@@ -191,7 +191,9 @@ function renderSearch() {
     (!q || f.name.toLowerCase().includes(q))
   );
   if (!matches.length) {
-    els.resultsList.appendChild(el('div', 'result-card', 'No matches — try clearing filters or searching differently.'));
+    const msg = el('div', 'empty-state', 'No matches — try clearing a filter or a different search term.');
+    msg.setAttribute('role', 'status');
+    els.resultsList.appendChild(msg);
     return;
   }
   matches.forEach(f => {
@@ -330,19 +332,24 @@ function populateTypeSelect(selectedType) {
 function openModal(id) {
   const entry = state.data.entries.find(e => e.id === id);
   if (!entry) return;
+  state._triggerEl = document.activeElement;
   state.editingId = id;
   els.modalTitle.textContent = 'Edit entry';
   els.modalCalories.value = entry.calories;
-  els.modalNote.value = entry.food || entry.note || '';
+  els.modalFood.value = entry.food || '';
+  els.modalNote.value = entry.note || '';
   populateTypeSelect(entry.type);
   els.deleteEntryButton.style.display = '';
   els.entryModal.classList.add('open');
+  setTimeout(() => els.modalCalories.focus(), 50);
 }
 
 function openCustomModal() {
+  state._triggerEl = document.activeElement;
   state.editingId = null;
   els.modalTitle.textContent = 'Custom entry';
   els.modalCalories.value = '';
+  els.modalFood.value = '';
   els.modalNote.value = '';
   populateTypeSelect(inferType(new Date().getHours()));
   els.deleteEntryButton.style.display = 'none';
@@ -353,6 +360,10 @@ function openCustomModal() {
 function closeModal() {
   els.entryModal.classList.remove('open');
   state.editingId = null;
+  if (state._triggerEl && typeof state._triggerEl.focus === 'function') {
+    state._triggerEl.focus();
+  }
+  state._triggerEl = null;
 }
 
 function saveModal() {
@@ -362,7 +373,7 @@ function saveModal() {
     const entry = state.data.entries.find(e => e.id === state.editingId);
     if (entry) {
       entry.calories = calories;
-      entry.food = els.modalNote.value.trim() || entry.food;
+      entry.food = els.modalFood.value.trim() || entry.food;
       entry.note = els.modalNote.value.trim();
       entry.type = els.modalType.value;
     }
@@ -373,8 +384,8 @@ function saveModal() {
       id: makeId(),
       calories,
       type: els.modalType.value,
-      food: els.modalNote.value.trim() || 'Custom',
-      note: '',
+      food: els.modalFood.value.trim() || 'Custom',
+      note: els.modalNote.value.trim(),
       portion: 'Custom',
       createdAt: now.toISOString(),
       dateKey: todayKey(now)
@@ -423,10 +434,12 @@ function exportData() {
       [e.dateKey, `"${(e.food||'').replace(/"/g,'""')}"`, e.calories, e.type, e.portion||'', `"${(e.note||'').replace(/"/g,'""')}"`].join(',')
     )
   ].join('\n');
+  const url = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv' }));
+  a.href = url;
   a.download = `calories-${todayKey()}.csv`;
   a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
 /* ── Bind events ── */
@@ -477,6 +490,9 @@ function bind() {
   els.saveEntryButton.onclick = saveModal;
   els.deleteEntryButton.onclick = deleteEntry;
   els.entryModal.onclick = e => { if (e.target === els.entryModal) closeModal(); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && els.entryModal.classList.contains('open')) closeModal();
+  });
 
   // Undo toast
   els.undoButton.onclick = undoDelete;

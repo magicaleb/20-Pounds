@@ -424,6 +424,16 @@ button { border: 0; cursor: pointer; touch-action: manipulation; }
   font-size: .85rem;
 }
 
+/* Empty state message */
+.empty-state {
+  padding: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: .88rem;
+  border-radius: 14px;
+  border: 1.5px dashed var(--line);
+}
+
 /* Responsive */
 @media (min-width: 680px) {
   .block-grid { grid-template-columns: repeat(4, 1fr); }

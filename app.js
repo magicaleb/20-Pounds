@@ -134,8 +134,8 @@ const currentCalories = () => {
 
 function setStep(step) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-  document.getElementById(step === 'filters' ? 'stepFilters' : step === 'search' ? 'stepSearch' : 'stepPortion').classList.add('active');
-  if (step === 'search') els.foodSearch.focus();
+  document.getElementById(step === 'find' ? 'stepFind' : 'stepPortion').classList.add('active');
+  if (step === 'find') els.foodSearch.focus();
 }
 function setPage(page) {
   const d = page === 'dashboard';
@@ -146,41 +146,28 @@ function setPage(page) {
   if (d) renderDashboard();
 }
 
-/* ── Render: step 1 – categories ── */
-function renderCategories() {
-  els.categoryGrid.replaceChildren();
+/* ── Render: step 1 – find (unified search + category chips + results) ── */
+function renderFind() {
+  // Category chips
+  els.categoryChips.replaceChildren();
+  const allActive = !state.selectedCategories.size;
+  const allChip = el('button', 'cat-chip' + (allActive ? ' active' : ''));
+  allChip.type = 'button';
+  allChip.textContent = 'All';
+  allChip.onclick = () => { state.selectedCategories.clear(); renderFind(); };
+  els.categoryChips.appendChild(allChip);
+
   categories.forEach(c => {
     const active = state.selectedCategories.has(c.id);
-    const b = el('button', 'food-block' + (active ? ' active' : ''));
-    b.type = 'button';
-    if (active) {
-      b.style.background = c.grad;
-      b.style.color = '#fff';
-      b.style.borderColor = 'transparent';
-    } else {
-      b.style.background = `${c.color}15`;
-      b.style.borderColor = `${c.color}55`;
-      b.style.color = c.color;
-    }
-    b.append(el('span', '', c.name), el('small', '', c.hint));
-    b.onclick = () => {
+    const chip = el('button', 'cat-chip' + (active ? ' active' : ''));
+    chip.type = 'button';
+    chip.textContent = c.name;
+    if (active) chip.style.background = c.grad;
+    chip.onclick = () => {
       state.selectedCategories.has(c.id) ? state.selectedCategories.delete(c.id) : state.selectedCategories.add(c.id);
-      renderCategories();
+      renderFind();
     };
-    els.categoryGrid.appendChild(b);
-  });
-}
-
-/* ── Render: step 2 – search / results ── */
-function renderSearch() {
-  // Filter chips
-  els.selectedFilters.replaceChildren();
-  [...state.selectedCategories].forEach(id => {
-    const cat = categories.find(c => c.id === id);
-    if (!cat) return;
-    const chip = el('span', 'filter-chip', cat.name);
-    chip.style.background = cat.grad;
-    els.selectedFilters.appendChild(chip);
+    els.categoryChips.appendChild(chip);
   });
 
   // Results
@@ -212,16 +199,11 @@ function renderSearch() {
   });
 }
 
-/* ── Render: step 3 – portion ── */
+/* ── Render: step 2 – portion ── */
 function renderPortion() {
   if (!state.selectedFood) return;
   els.selectedFoodName.textContent = state.selectedFood.name;
   els.selectedCalories.textContent = currentCalories().toLocaleString();
-
-  const catLabel = state.selectedFood.cats
-    .map(id => categories.find(c => c.id === id)?.name)
-    .filter(Boolean).join(' · ');
-  els.selectedFoodCategory.textContent = catLabel;
 
   // Comparison chips
   els.compareList.replaceChildren();
@@ -249,7 +231,6 @@ function renderDashboard() {
   const pct = Math.min(100, Math.round(total / target * 100));
 
   els.todayTotal.textContent = total.toLocaleString();
-  els.targetValue.textContent = target.toLocaleString();
   els.remainingText.textContent = remaining >= 0
     ? `${remaining.toLocaleString()} left`
     : `${Math.abs(remaining).toLocaleString()} over!`;
@@ -315,8 +296,8 @@ function resetEntryFlow() {
   els.noteInput.value = '';
   els.foodSearch.value = '';
   if (els.manualCalories) els.manualCalories.value = '';
-  renderCategories();
-  setStep('filters');
+  renderFind();
+  setStep('find');
 }
 
 /* ── Modal (edit/custom) ── */
@@ -448,12 +429,10 @@ function bind() {
   els.dashboardTab.onclick = () => setPage('dashboard');
 
   // Step navigation
-  els.toSearchButton.onclick = () => { renderSearch(); setStep('search'); };
-  els.backToFilters.onclick = () => setStep('filters');
-  els.backToSearch.onclick = () => setStep('search');
+  els.backToFind.onclick = () => { renderFind(); setStep('find'); };
 
   // Search
-  els.foodSearch.oninput = () => { state.query = els.foodSearch.value; renderSearch(); };
+  els.foodSearch.oninput = () => { state.query = els.foodSearch.value; renderFind(); };
 
   // Calorie nudge
   document.querySelectorAll('.adjust-btn').forEach(btn =>
@@ -471,7 +450,6 @@ function bind() {
     renderDashboard();
     showToast('Goal saved!');
   };
-  els.targetButton.onclick = () => { setPage('dashboard'); setTimeout(() => els.targetInput.focus(), 100); };
   els.customButton.onclick = openCustomModal;
   els.exportButton.onclick = exportData;
   els.clearOldButton.onclick = () => {
@@ -499,8 +477,7 @@ function bind() {
 }
 
 function render() {
-  renderCategories();
-  renderSearch();
+  renderFind();
 }
 
 bind();

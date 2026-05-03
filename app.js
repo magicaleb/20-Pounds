@@ -134,8 +134,9 @@ const currentCalories = () => {
 
 function setStep(step) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-  document.getElementById(step === 'find' ? 'stepFind' : 'stepPortion').classList.add('active');
-  if (step === 'find') els.foodSearch.focus();
+  const id = step === 'categories' ? 'stepCategories' : step === 'search' ? 'stepSearch' : 'stepPortion';
+  document.getElementById(id).classList.add('active');
+  if (step === 'search') els.foodSearch.focus();
 }
 function setPage(page) {
   const d = page === 'dashboard';
@@ -146,28 +147,57 @@ function setPage(page) {
   if (d) renderDashboard();
 }
 
-/* ── Render: step 1 – find (unified search + category chips + results) ── */
-function renderFind() {
-  // Category chips
-  els.categoryChips.replaceChildren();
-  const allActive = !state.selectedCategories.size;
-  const allChip = el('button', 'cat-chip' + (allActive ? ' active' : ''));
-  allChip.type = 'button';
-  allChip.textContent = 'All';
-  allChip.onclick = () => { state.selectedCategories.clear(); renderFind(); };
-  els.categoryChips.appendChild(allChip);
+/* ── Persistent calorie bar (always visible) ── */
+function updateCalBar() {
+  const today = todayKey();
+  const total = state.data.entries.filter(e => e.dateKey === today).reduce((s, e) => s + e.calories, 0);
+  const target = state.data.target;
+  const pct = Math.min(100, Math.round(total / target * 100));
+  const remaining = target - total;
+  els.calBarFill.style.width = `${pct}%`;
+  els.calBarFill.classList.toggle('over', total > target);
+  els.calBarText.textContent = `${total.toLocaleString()} cal`;
+  els.calBarGoal.textContent = remaining >= 0
+    ? `/ ${target.toLocaleString()} · ${remaining.toLocaleString()} left`
+    : `/ ${target.toLocaleString()} · ${Math.abs(remaining).toLocaleString()} over!`;
+}
 
+/* ── Render: step 1 – category grid ── */
+function renderCategories() {
+  els.categoryGrid.replaceChildren();
   categories.forEach(c => {
     const active = state.selectedCategories.has(c.id);
-    const chip = el('button', 'cat-chip' + (active ? ' active' : ''));
-    chip.type = 'button';
-    chip.textContent = c.name;
-    if (active) chip.style.background = c.grad;
-    chip.onclick = () => {
-      state.selectedCategories.has(c.id) ? state.selectedCategories.delete(c.id) : state.selectedCategories.add(c.id);
-      renderFind();
+    const b = el('button', 'food-block' + (active ? ' active' : ''));
+    b.type = 'button';
+    if (active) {
+      b.style.background = c.grad;
+      b.style.color = '#fff';
+    } else {
+      b.style.background = `${c.color}18`;
+      b.style.borderColor = `${c.color}44`;
+      b.style.color = c.color;
+    }
+    b.textContent = c.name;
+    b.onclick = () => {
+      state.selectedCategories.clear();
+      state.selectedCategories.add(c.id);
+      renderSearch();
+      setStep('search');
     };
-    els.categoryChips.appendChild(chip);
+    els.categoryGrid.appendChild(b);
+  });
+}
+
+/* ── Render: step 2 – search / results ── */
+function renderSearch() {
+  // Filter chips
+  els.selectedFilters.replaceChildren();
+  [...state.selectedCategories].forEach(id => {
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+    const chip = el('span', 'filter-chip', cat.name);
+    chip.style.background = cat.grad;
+    els.selectedFilters.appendChild(chip);
   });
 
   // Results
@@ -265,6 +295,7 @@ function renderDashboard() {
   }
   els.showAllButton.style.display = allEntries.length > 15 ? '' : 'none';
   els.showAllButton.textContent = state.showAll ? 'Show less' : 'Show all';
+  updateCalBar();
 }
 
 /* ── Add entry ── */
@@ -284,6 +315,7 @@ function addEntry() {
   });
   saveData();
   resetEntryFlow();
+  updateCalBar();
   showToast(`✓ ${calories.toLocaleString()} cal logged`);
 }
 
@@ -296,8 +328,8 @@ function resetEntryFlow() {
   els.noteInput.value = '';
   els.foodSearch.value = '';
   if (els.manualCalories) els.manualCalories.value = '';
-  renderFind();
-  setStep('find');
+  renderCategories();
+  setStep('categories');
 }
 
 /* ── Modal (edit/custom) ── */
@@ -429,10 +461,12 @@ function bind() {
   els.dashboardTab.onclick = () => setPage('dashboard');
 
   // Step navigation
-  els.backToFind.onclick = () => { renderFind(); setStep('find'); };
+  els.toSearchButton.onclick = () => { state.selectedCategories.clear(); renderSearch(); setStep('search'); };
+  els.backToCategories.onclick = () => { renderCategories(); setStep('categories'); };
+  els.backToSearch.onclick = () => { renderSearch(); setStep('search'); };
 
   // Search
-  els.foodSearch.oninput = () => { state.query = els.foodSearch.value; renderFind(); };
+  els.foodSearch.oninput = () => { state.query = els.foodSearch.value; renderSearch(); };
 
   // Calorie nudge
   document.querySelectorAll('.adjust-btn').forEach(btn =>
@@ -477,7 +511,8 @@ function bind() {
 }
 
 function render() {
-  renderFind();
+  renderCategories();
+  updateCalBar();
 }
 
 bind();

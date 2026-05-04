@@ -11,76 +11,39 @@
   <body>
     <main class="app">
 
-      <!-- LOG FOOD page (3-step) -->
+      <!-- LOG FOOD page -->
       <section class="page active" id="entryPage">
-        <div class="entry-shell">
-
-          <!-- Step 1: category grid -->
-          <div class="step active" id="stepCategories">
-            <div class="block-grid" id="categoryGrid"></div>
-            <button class="skip-link" id="toSearchButton" type="button">Skip → show all foods</button>
+        <!-- Calorie ring -->
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="ring-track" cx="100" cy="100" r="80"/>
+            <circle class="ring-fill" id="ringFill" cx="100" cy="100" r="80"/>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-num" id="ringNum">2,200</div>
+            <div class="ring-lbl" id="ringLbl">left today</div>
           </div>
-
-          <!-- Step 2: search + results -->
-          <div class="step" id="stepSearch">
-            <div class="search-row">
-              <input class="search-input" id="foodSearch" placeholder="Search…" autocomplete="off" type="search" />
-              <div class="filter-chips" id="selectedFilters"></div>
-            </div>
-            <div class="results-list" id="resultsList"></div>
-            <button class="btn-back" id="backToCategories" type="button">← Back</button>
-          </div>
-
-          <!-- Step 3: portion -->
-          <div class="step" id="stepPortion">
-            <div class="food-hero">
-              <div class="fh-left">
-                <div class="fh-name" id="selectedFoodName">Food</div>
-                <div class="fh-comps" id="compareList"></div>
-              </div>
-              <div class="fh-right">
-                <span class="fh-cal" id="selectedCalories">0</span>
-                <span class="fh-unit">cal</span>
-              </div>
-            </div>
-            <div class="portion-grid" id="portionGrid"></div>
-            <div class="cal-adjust">
-              <button class="adjust-btn minus" data-adjust="-100" type="button">−100</button>
-              <button class="adjust-btn minus" data-adjust="-50"  type="button">−50</button>
-              <button class="adjust-btn plus"  data-adjust="50"   type="button">+50</button>
-              <button class="adjust-btn plus"  data-adjust="100"  type="button">+100</button>
-            </div>
-            <input class="field note-field" id="noteInput" maxlength="42" placeholder="Note (optional)" />
-            <div class="portion-actions">
-              <button class="btn-back" id="backToSearch" type="button">← Back</button>
-              <button class="btn-log" id="addButton" type="button">Log it ✓</button>
-            </div>
-          </div>
-
         </div>
+
+        <!-- Search bar -->
+        <div class="search-wrap">
+          <input class="search-input" id="foodSearch" type="search" placeholder="Search anything…" autocomplete="off"/>
+        </div>
+
+        <!-- Food tiles (suggestions or search results) -->
+        <div class="food-grid" id="foodGrid"></div>
       </section>
 
       <!-- DASHBOARD page -->
       <section class="page" id="dashboardPage">
         <div class="dashboard">
+          <!-- Week chart -->
+          <div class="week-row" id="weekRow"></div>
 
-          <div class="hero" aria-label="Today's calorie summary">
-            <div class="hero-row">
-              <div class="hero-left">
-                <span class="total" id="todayTotal">0</span>
-                <span class="hero-unit">cal today</span>
-              </div>
-              <div class="hero-right">
-                <span class="remain" id="remainingText">2,200 left</span>
-                <span class="pct" id="progressText">0%</span>
-              </div>
-            </div>
-            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-          </div>
-
+          <!-- Controls -->
           <div class="controls-card">
             <div class="goal-row">
-              <input class="field goal-input" id="targetInput" type="number" inputmode="numeric" min="1" step="50" placeholder="Daily goal (cal)" />
+              <input class="field goal-input" id="targetInput" type="number" inputmode="numeric" min="1" step="50" placeholder="Goal (cal)" />
               <button class="btn-save" id="saveTargetButton" type="button">Save</button>
             </div>
             <button class="btn-custom" id="customButton" type="button">+ Custom entry</button>
@@ -90,33 +53,48 @@
             </div>
           </div>
 
+          <!-- History -->
           <div class="history-card">
-            <div class="hist-header">
-              <span class="entry-count" id="entryCount">No entries yet</span>
+            <div class="hist-hdr">
+              <span class="entry-count" id="entryCount"></span>
               <button class="btn-util" id="showAllButton" type="button" style="display:none">Show all</button>
             </div>
             <div class="history-list" id="historyList"></div>
           </div>
-
         </div>
       </section>
 
     </main>
 
-    <!-- Persistent calorie progress bar -->
-    <div class="cal-bar" id="calBar" aria-label="Today's calorie progress">
-      <div class="cal-bar-track"><div class="cal-bar-fill" id="calBarFill"></div></div>
-      <div class="cal-bar-label">
-        <span id="calBarText">0 cal</span>
-        <span id="calBarGoal">/ 2,200 goal</span>
+    <!-- Tab bar -->
+    <nav class="tabs" aria-label="App navigation">
+      <button class="tab active" id="entryTab" type="button">Log</button>
+      <button class="tab" id="dashboardTab" type="button">Today</button>
+    </nav>
+
+    <!-- Bottom sheet (portion picker) -->
+    <div class="sheet-overlay" id="sheetOverlay">
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Log portion">
+        <div class="sheet-handle"></div>
+        <div class="sheet-food">
+          <div class="sheet-name" id="sheetName"></div>
+          <div class="sheet-cal-wrap">
+            <span class="sheet-cal" id="sheetCal">0</span>
+            <span class="sheet-cal-unit">cal</span>
+          </div>
+        </div>
+        <div class="sheet-portions" id="sheetPortions"></div>
+        <div class="nudge-row">
+          <button class="nudge minus" data-adjust="-100" type="button">−100</button>
+          <button class="nudge minus" data-adjust="-50"  type="button">−50</button>
+          <button class="nudge plus"  data-adjust="50"   type="button">+50</button>
+          <button class="nudge plus"  data-adjust="100"  type="button">+100</button>
+        </div>
+        <button class="log-btn" id="sheetLogBtn" type="button">Log it</button>
       </div>
     </div>
 
-    <nav class="tabs" aria-label="App navigation">
-      <button class="tab active" id="entryTab" type="button">Log food</button>
-      <button class="tab" id="dashboardTab" type="button">Dashboard</button>
-    </nav>
-
+    <!-- Edit modal -->
     <div class="modal-backdrop" id="entryModal" role="dialog" aria-modal="true" aria-label="Edit entry">
       <div class="modal">
         <div class="modal-header">

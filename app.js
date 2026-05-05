@@ -15,27 +15,29 @@ import {
   where
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
+const DEFAULT_FOOD_COLOR = '#7c3aed';
+
 const FOOD_DB = [
-  { id: 'rice_bowl', name: 'Rice bowl', emoji: '🍚', baseCalories: 520 },
-  { id: 'pasta_plate', name: 'Pasta', emoji: '🍝', baseCalories: 620 },
-  { id: 'burger_fries', name: 'Burger + fries', emoji: '🍔', baseCalories: 860 },
-  { id: 'pizza_slice', name: 'Pizza', emoji: '🍕', baseCalories: 320 },
-  { id: 'chicken_salad', name: 'Chicken salad', emoji: '🥗', baseCalories: 460 },
-  { id: 'breakfast_sandwich', name: 'Breakfast sandwich', emoji: '🥪', baseCalories: 430 },
-  { id: 'burrito', name: 'Burrito', emoji: '🌯', baseCalories: 760 },
-  { id: 'tacos', name: 'Tacos', emoji: '🌮', baseCalories: 520 },
-  { id: 'sushi_rolls', name: 'Sushi rolls', emoji: '🍣', baseCalories: 480 },
-  { id: 'stir_fry', name: 'Stir fry', emoji: '🥡', baseCalories: 600 },
-  { id: 'steak_potatoes', name: 'Steak + potatoes', emoji: '🥩', baseCalories: 760 },
-  { id: 'soup_sandwich', name: 'Soup + sandwich', emoji: '🥣', baseCalories: 540 },
-  { id: 'fried_chicken', name: 'Fried chicken', emoji: '🍗', baseCalories: 700 },
-  { id: 'protein_shake', name: 'Protein shake', emoji: '🥤', baseCalories: 250 },
-  { id: 'latte_sweet', name: 'Sweet latte', emoji: '☕', baseCalories: 240 },
-  { id: 'yogurt_granola', name: 'Yogurt + granola', emoji: '🥛', baseCalories: 360 },
-  { id: 'fruit_nuts', name: 'Fruit + nuts', emoji: '🍎', baseCalories: 280 },
-  { id: 'chips_crackers', name: 'Chips / crackers', emoji: '🥨', baseCalories: 220 },
-  { id: 'dessert', name: 'Dessert', emoji: '🍰', baseCalories: 390 },
-  { id: 'ice_cream', name: 'Ice cream', emoji: '🍨', baseCalories: 320 }
+  { id: 'rice_bowl',          name: 'Rice bowl',          emoji: '🍚', baseCalories: 520,  color: '#d97706' },
+  { id: 'pasta_plate',        name: 'Pasta',              emoji: '🍝', baseCalories: 620,  color: '#ea580c' },
+  { id: 'burger_fries',       name: 'Burger + fries',     emoji: '🍔', baseCalories: 860,  color: '#dc2626' },
+  { id: 'pizza_slice',        name: 'Pizza',              emoji: '🍕', baseCalories: 320,  color: '#db2777' },
+  { id: 'chicken_salad',      name: 'Chicken salad',      emoji: '🥗', baseCalories: 460,  color: '#0d9488' },
+  { id: 'breakfast_sandwich', name: 'Breakfast sandwich', emoji: '🥪', baseCalories: 430,  color: '#d97706' },
+  { id: 'burrito',            name: 'Burrito',            emoji: '🌯', baseCalories: 760,  color: '#ea580c' },
+  { id: 'tacos',              name: 'Tacos',              emoji: '🌮', baseCalories: 520,  color: '#d97706' },
+  { id: 'sushi_rolls',        name: 'Sushi rolls',        emoji: '🍣', baseCalories: 480,  color: '#4f46e5' },
+  { id: 'stir_fry',           name: 'Stir fry',           emoji: '🥡', baseCalories: 600,  color: '#0d9488' },
+  { id: 'steak_potatoes',     name: 'Steak + potatoes',   emoji: '🥩', baseCalories: 760,  color: '#dc2626' },
+  { id: 'soup_sandwich',      name: 'Soup + sandwich',    emoji: '🥣', baseCalories: 540,  color: '#7c3aed' },
+  { id: 'fried_chicken',      name: 'Fried chicken',      emoji: '🍗', baseCalories: 700,  color: '#d97706' },
+  { id: 'protein_shake',      name: 'Protein shake',      emoji: '🥤', baseCalories: 250,  color: '#2563eb' },
+  { id: 'latte_sweet',        name: 'Sweet latte',        emoji: '☕', baseCalories: 240,  color: '#d97706' },
+  { id: 'yogurt_granola',     name: 'Yogurt + granola',   emoji: '🥛', baseCalories: 360,  color: '#0d9488' },
+  { id: 'fruit_nuts',         name: 'Fruit + nuts',       emoji: '🍎', baseCalories: 280,  color: '#16a34a' },
+  { id: 'chips_crackers',     name: 'Chips / crackers',   emoji: '🥨', baseCalories: 220,  color: '#db2777' },
+  { id: 'dessert',            name: 'Dessert',            emoji: '🍰', baseCalories: 390,  color: '#db2777' },
+  { id: 'ice_cream',          name: 'Ice cream',          emoji: '🍨', baseCalories: 320,  color: '#7c3aed' }
 ];
 
 const SIZE_OPTIONS = [
@@ -62,6 +64,8 @@ const state = {
 };
 
 const ui = {
+  pip1: document.getElementById('pip1'),
+  pip2: document.getElementById('pip2'),
   todayLabel: document.getElementById('todayLabel'),
   todayTotal: document.getElementById('todayTotal'),
   targetText: document.getElementById('targetText'),
@@ -182,7 +186,8 @@ function renderFoodGrid(root, activeId = null, compact = false) {
     btn.type = 'button';
     btn.className = `food-btn${food.id === activeId ? ' active' : ''}${compact ? ' compact' : ''}`;
     btn.dataset.foodId = food.id;
-    btn.innerHTML = `<span class="food-emoji" aria-hidden="true">${food.emoji}</span><span>${food.name}</span><small>~${food.baseCalories} kcal regular</small>`;
+    btn.style.setProperty('--food-color', food.color || DEFAULT_FOOD_COLOR);
+    btn.innerHTML = `<span class="food-emoji-wrap" aria-hidden="true">${food.emoji}</span><span class="food-name">${food.name}</span><small>~${food.baseCalories} kcal</small>`;
     root.appendChild(btn);
   });
 }
@@ -194,26 +199,29 @@ function renderSizeGrid(root, activeId = null) {
     btn.type = 'button';
     btn.className = `size-btn${size.id === activeId ? ' active' : ''}`;
     btn.dataset.sizeId = size.id;
-    btn.innerHTML = `<strong>${size.name}</strong><span>${size.cue}</span>`;
+    btn.innerHTML = `<span class="size-dot" aria-hidden="true"></span><span class="size-label"><strong>${size.name}</strong><span>${size.cue}</span></span>`;
     root.appendChild(btn);
   });
 }
 
 function showStep(step) {
+  ui.pip1.classList.toggle('active', step === 'food');
+  ui.pip2.classList.toggle('active', step === 'size');
+
   if (step === 'food') {
     ui.stepFood.hidden = false;
     ui.stepSize.hidden = true;
-    ui.wizardTitle.textContent = 'Step 1 · What did you eat?';
-    ui.wizardHint.textContent = 'Pick the closest option. Precision is not required.';
+    ui.wizardTitle.textContent = 'What did you eat?';
+    ui.wizardHint.textContent = 'Pick the closest option.';
     return;
   }
 
   ui.stepFood.hidden = true;
   ui.stepSize.hidden = false;
   const food = findFood(state.selectedFoodId);
-  ui.wizardTitle.textContent = 'Step 2 · How much?';
-  ui.wizardHint.textContent = 'Choose a size reference and it saves instantly.';
-  ui.selectedFoodPreview.innerHTML = `<span class="food-emoji">${food.emoji}</span> ${food.name}`;
+  ui.wizardTitle.textContent = 'How much?';
+  ui.wizardHint.textContent = 'Tap a size to log instantly.';
+  ui.selectedFoodPreview.innerHTML = `<span class="food-emoji-wrap" style="--food-color:${food.color || DEFAULT_FOOD_COLOR}" aria-hidden="true">${food.emoji}</span><span>${food.name}</span>`;
 }
 
 function totalCalories() {
@@ -243,11 +251,12 @@ function renderHistory() {
     const node = document.createElement('article');
     node.className = 'history-item';
     node.innerHTML = `
-      <div>
-        <p class="item-kcal">${Number(entry.calories) || 0} kcal</p>
-        <p>${sanitize(describeEntry(entry))}</p>
+      <span class="item-emoji" aria-hidden="true">${sanitize(entry.foodEmoji || '🍽')}</span>
+      <div class="item-body">
+        <p class="item-label">${sanitize(entry.foodName || '')} · ${sanitize(entry.sizeName || '')}</p>
         <p class="item-meta">${sanitize(formatTime(entry.createdAt))}</p>
       </div>
+      <span class="item-kcal-badge">${Number(entry.calories) || 0} kcal</span>
       <div class="item-actions">
         <button type="button" class="icon-btn" data-action="edit" data-id="${entry.id}" aria-label="Edit">✎</button>
         <button type="button" class="icon-btn delete-btn" data-action="delete" data-id="${entry.id}" aria-label="Delete">🗑</button>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" content="#7c3aed" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Calorie Flow" />
     <title>Calorie Flow</title>
@@ -13,7 +13,7 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="top card">
+      <header class="top">
         <div>
           <p id="todayLabel" class="muted">Today</p>
           <h1 id="todayTotal">0 kcal</h1>
@@ -35,10 +35,15 @@
         <div class="bar"><div id="progressBar" class="bar-fill"></div></div>
       </section>
 
-      <section class="card wizard-card" aria-label="Quick entry wizard">
+      <section class="wizard-card" aria-label="Quick entry wizard">
         <div class="wizard-head">
-          <h2 id="wizardTitle">Step 1 · What did you eat?</h2>
-          <p id="wizardHint" class="muted">Pick the closest option. Precision is not required.</p>
+          <div class="step-track">
+            <span class="step-pip active" id="pip1">1</span>
+            <span class="step-arrow">›</span>
+            <span class="step-pip" id="pip2">2</span>
+          </div>
+          <h2 id="wizardTitle">What did you eat?</h2>
+          <p id="wizardHint" class="muted">Pick the closest option.</p>
         </div>
 
         <div id="stepFood" class="wizard-step active">
@@ -53,7 +58,9 @@
           </div>
         </div>
       </section>
+    </div><!-- /.app-shell -->
 
+    <div class="history-outer">
       <section class="card history-card">
         <div class="history-head">
           <h2>Today’s entries</h2>

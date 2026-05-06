@@ -51,34 +51,32 @@
 
 /* ─── Reset / base ───────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-html { height: 100%; }
+html, body { height: 100%; margin: 0; overflow: hidden; }
 body {
-  margin: 0;
   background: var(--bg);
   color: var(--text);
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   line-height: 1.4;
-  /* body scrolls to reveal the history section below the fold */
-  overflow-y: auto;
 }
 h1, h2, h3, p { margin: 0; }
 button { font-family: inherit; cursor: pointer; }
 
-/* ─── App shell (viewport-locked entry area) ─── */
+/* ─── App shell ──────────────────────────────── */
 /*
-   Three-row grid: header | progress | wizard
-   History lives OUTSIDE this div so it's below
-   the fold and never forces the wizard to shrink.
+   Three-row grid:
+     auto  — thin progress strip
+     1fr   — wizard (fills remaining space)
+     auto  — today's log (capped, scrolls internally)
 */
 .app-shell {
   height: 100dvh;
   max-width: 520px;
   margin: 0 auto;
-  padding: 10px 12px;
+  padding: 8px 12px;
   display: grid;
-  grid-template-rows: auto auto 1fr;
-  gap: 10px;
+  grid-template-rows: auto 1fr auto;
+  gap: 8px;
   overflow: hidden;
 }
 
@@ -87,7 +85,6 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 12px 14px;
   box-shadow: var(--shadow-xs);
 }
 
@@ -95,61 +92,33 @@ button { font-family: inherit; cursor: pointer; }
 h2     { font-size: 1.05rem; font-weight: 700; }
 h3     { font-size: .95rem;  font-weight: 700; }
 
-/* ─── Gradient header ────────────────────────── */
-.top {
-  background: var(--grad-header);
-  border-radius: var(--r);
-  color: #fff;
-  padding: 16px 16px 14px;
+/* ─── Thin progress strip ────────────────────── */
+.progress-strip {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  box-shadow: var(--shadow-lg);
-}
-.top .muted { color: rgba(255,255,255,.75); font-size: .78rem; letter-spacing: .04em; }
-.top h1 {
-  color: #fff;
-  font-size: clamp(2rem, 9vw, 2.6rem);
-  font-weight: 900;
-  letter-spacing: -.02em;
-  margin-top: 2px;
-}
-
-/* ─── Progress card ──────────────────────────── */
-.progress-card { padding: 12px 14px; }
-
-.progress-head {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 8px;
+  padding: 6px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-xs);
 }
-.target-text    { font-weight: 700; font-size: .92rem; margin-top: 2px; }
-.target-controls { display: flex; gap: 6px; }
 
-.small-btn {
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1.5px solid var(--border);
-  background: transparent;
-  color: var(--text);
+.strip-info {
   font-size: .82rem;
-  font-weight: 700;
-  transition: background 120ms, border-color 120ms;
-}
-.small-btn:hover, .small-btn:active {
-  background: var(--primary-soft);
-  border-color: var(--primary);
+  font-weight: 800;
+  color: var(--primary);
+  white-space: nowrap;
 }
 
-.bar {
-  margin-top: 10px;
-  height: 9px;
+.strip-bar {
+  flex: 1;
+  height: 7px;
   border-radius: 999px;
   background: var(--border);
   overflow: hidden;
 }
+
 .bar-fill {
   width: 0;
   height: 100%;
@@ -158,22 +127,45 @@ h3     { font-size: .95rem;  font-weight: 700; }
   transition: width 380ms cubic-bezier(.4,0,.2,1);
 }
 
-/* ─── Theme-toggle icon button (on gradient) ─── */
-.icon-btn {
-  width: 40px; height: 40px;
+.strip-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.small-btn {
+  height: 26px;
+  min-width: 28px;
+  padding: 0 8px;
   border-radius: 999px;
-  border: 1.5px solid rgba(255,255,255,.30);
-  background: rgba(255,255,255,.20);
-  color: #fff;
-  font-size: 1rem;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: .8rem;
+  font-weight: 700;
+  transition: background 120ms, border-color 120ms;
+}
+.small-btn:hover, .small-btn:active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+/* flat icon button (for use outside gradient headers) */
+.flat-icon-btn {
+  width: 30px; height: 30px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: .9rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: background 120ms;
 }
-.icon-btn:hover { background: rgba(255,255,255,.32); }
+.flat-icon-btn:hover { background: var(--primary-soft); }
 
-/* ─── Wizard card (fills remaining grid row) ─── */
+/* ─── Wizard card (fills 1fr row) ────────────── */
 .wizard-card {
   overflow: hidden;
   display: flex;
@@ -181,8 +173,8 @@ h3     { font-size: .95rem;  font-weight: 700; }
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 12px 12px 10px;
-  gap: 8px;
+  padding: 10px 12px 8px;
+  gap: 6px;
   box-shadow: var(--shadow-xs);
 }
 
@@ -194,12 +186,12 @@ h3     { font-size: .95rem;  font-weight: 700; }
   margin-bottom: 2px;
 }
 .step-pip {
-  width: 26px; height: 26px;
+  width: 24px; height: 24px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: .72rem;
+  font-size: .70rem;
   font-weight: 800;
   background: var(--border);
   color: var(--muted);
@@ -217,21 +209,53 @@ h3     { font-size: .95rem;  font-weight: 700; }
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 .wizard-step[hidden] { display: none; }
 
-/* ─── Step 1: food grid ──────────────────────── */
+/* ─── Step 1: category grid ──────────────────── */
+.cat-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.cat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: .85rem;
+  font-weight: 700;
+  text-align: center;
+  transition: transform 80ms ease, background 120ms, border-color 120ms;
+}
+.cat-btn:active { transform: scale(0.96); }
+.cat-btn:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.cat-emoji { font-size: 1.6rem; line-height: 1; }
+.cat-name  { font-size: .82rem; }
+
+/* ─── Step 2: food grid ──────────────────────── */
 .food-grid {
   flex: 1;
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 7px;
   overflow-y: auto;
   overscroll-behavior-y: contain;
-  padding-right: 2px;
-  padding-bottom: 4px;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -240,8 +264,8 @@ h3     { font-size: .95rem;  font-weight: 700; }
 .food-btn {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px;
+  gap: 3px;
+  padding: 8px;
   border-radius: var(--r-sm);
   border: 1.5px solid var(--border);
   background: var(--card);
@@ -250,19 +274,19 @@ h3     { font-size: .95rem;  font-weight: 700; }
 }
 .food-btn:active { transform: scale(0.96); }
 
-/* coloured emoji wrap — tinted to the food's own accent colour */
+/* coloured emoji wrap */
 .food-emoji-wrap {
-  width: 42px; height: 42px;
+  width: 36px; height: 36px;
   border-radius: var(--r-xs);
   background: color-mix(in oklab, var(--food-color, var(--primary)) 14%, var(--card));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   flex-shrink: 0;
 }
-.food-btn .food-name { font-size: .85rem; font-weight: 700; color: var(--text); line-height: 1.2; }
-.food-btn small      { font-size: .72rem; color: var(--muted); }
+.food-btn .food-name { font-size: .82rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+.food-btn small      { font-size: .70rem; color: var(--muted); }
 
 .food-btn.active {
   border-color: var(--food-color, var(--primary));
@@ -271,30 +295,30 @@ h3     { font-size: .95rem;  font-weight: 700; }
 }
 
 /* compact variant for the edit dialog */
-.food-btn.compact .food-emoji-wrap { width: 34px; height: 34px; font-size: 1.2rem; }
-.compact-grid { max-height: 28vh; overflow-y: auto; }
+.food-btn.compact .food-emoji-wrap { width: 30px; height: 30px; font-size: 1.1rem; }
+.compact-grid { max-height: 26vh; overflow-y: auto; }
 
-/* ─── Step 2: size grid ──────────────────────── */
+/* ─── Step 3: size grid ──────────────────────── */
 .selected-food {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 7px 12px;
   border-radius: var(--r-sm);
   background: var(--primary-soft);
   border: 1.5px solid color-mix(in oklab, var(--primary) 28%, transparent);
   font-weight: 700;
-  font-size: .95rem;
+  font-size: .92rem;
 }
-.selected-food .food-emoji-wrap { width: 36px; height: 36px; font-size: 1.3rem; }
+.selected-food .food-emoji-wrap { width: 32px; height: 32px; font-size: 1.2rem; }
 
 .size-grid {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
@@ -306,7 +330,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: var(--r-sm);
   border: 1.5px solid var(--border);
   background: var(--card);
@@ -327,11 +351,11 @@ h3     { font-size: .95rem;  font-weight: 700; }
 .size-btn[data-size-id="small"]   .size-dot { width: 14px; height: 14px; }
 .size-btn[data-size-id="regular"] .size-dot { width: 18px; height: 18px; }
 .size-btn[data-size-id="large"]   .size-dot { width: 22px; height: 22px; }
-.size-btn[data-size-id="xlarge"]  .size-dot { width: 28px; height: 28px; }
+.size-btn[data-size-id="xlarge"]  .size-dot { width: 26px; height: 26px; }
 
 .size-btn .size-label { flex: 1; }
-.size-btn strong { font-size: .92rem; font-weight: 800; display: block; }
-.size-btn span   { font-size: .78rem; color: var(--muted); display: block; }
+.size-btn strong { font-size: .88rem; font-weight: 800; display: block; }
+.size-btn span   { font-size: .75rem; color: var(--muted); display: block; }
 
 .size-btn.active {
   border-color: var(--primary);
@@ -343,80 +367,83 @@ h3     { font-size: .95rem;  font-weight: 700; }
 .wizard-actions { flex: 0 0 auto; }
 
 .secondary-btn {
-  height: 40px;
-  padding: 0 18px;
+  height: 36px;
+  padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--border);
   background: transparent;
   color: var(--muted);
-  font-size: .88rem;
+  font-size: .85rem;
   font-weight: 500;
   transition: background 120ms;
 }
 .secondary-btn:hover { background: var(--primary-soft); }
 
-/* ─── History (below the fold) ───────────────── */
-.history-outer {
-  max-width: 520px;
-  margin: 0 auto;
-  padding: 0 12px 32px;
+/* ─── Today's log (3rd row of shell) ─────────── */
+.history-section {
+  overflow-y: auto;
+  max-height: 26vh;
+  padding: 8px 12px 10px;
 }
-.history-card { padding: 14px 14px 16px; }
 
 .history-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
-.history-list { display: flex; flex-direction: column; gap: 6px; }
+.history-list { display: flex; flex-direction: column; gap: 5px; }
 
 .history-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 7px 10px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--card);
 }
-.item-emoji      { font-size: 1.5rem; flex-shrink: 0; line-height: 1; }
+.item-emoji      { font-size: 1.3rem; flex-shrink: 0; line-height: 1; }
 .item-body       { flex: 1; min-width: 0; }
-.item-label      { font-size: .86rem; font-weight: 600;
+.item-label      { font-size: .82rem; font-weight: 600;
                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-meta       { font-size: .74rem; color: var(--muted); margin-top: 2px; }
+.item-meta       { font-size: .72rem; color: var(--muted); margin-top: 1px; }
 .item-kcal-badge {
   flex-shrink: 0;
   background: var(--primary-soft);
   color: var(--primary);
   border-radius: 999px;
-  padding: 4px 10px;
-  font-size: .80rem;
+  padding: 3px 8px;
+  font-size: .78rem;
   font-weight: 800;
   white-space: nowrap;
 }
 .item-actions { display: flex; gap: 4px; flex-shrink: 0; }
 
-/* icon-btn override inside history (not on gradient bg) */
-.history-item .icon-btn {
-  width: 34px; height: 34px;
+.icon-btn {
+  width: 32px; height: 32px;
   border-radius: var(--r-xs);
   border: 1px solid var(--border);
   background: transparent;
   color: var(--muted);
-  font-size: .9rem;
+  font-size: .85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 120ms;
 }
-.history-item .icon-btn.delete-btn { color: var(--danger); }
+.icon-btn.delete-btn { color: var(--danger); }
 
 /* ─── Shared action buttons ──────────────────── */
 .primary-btn {
-  min-height: 44px;
-  padding: 0 22px;
+  min-height: 40px;
+  padding: 0 20px;
   border-radius: 999px;
   border: none;
   background: var(--grad-header);
   color: #fff;
-  font-size: .95rem;
+  font-size: .92rem;
   font-weight: 700;
   box-shadow: 0 4px 14px color-mix(in oklab, var(--pink) 28%, transparent);
   transition: opacity 120ms;
@@ -472,5 +499,6 @@ h3     { font-size: .95rem;  font-weight: 700; }
 
 /* ─── Responsive ─────────────────────────────── */
 @media (min-width: 580px) {
+  .cat-grid  { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); }
   .food-grid { grid-template-columns: repeat(3, 1fr); }
 }

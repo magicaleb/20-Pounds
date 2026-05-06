@@ -1,20 +1,3 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  where
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
-
 const DEFAULT_FOOD_COLOR = '#7c3aed';
 
 const FOOD_DB = [
@@ -41,65 +24,78 @@ const FOOD_DB = [
 ];
 
 const SIZE_OPTIONS = [
-  { id: 'tiny', name: 'Tiny', ratio: 0.5, cue: 'A few bites / half snack' },
-  { id: 'small', name: 'Small', ratio: 0.75, cue: 'Palm size / light plate' },
-  { id: 'regular', name: 'Regular', ratio: 1, cue: 'Standard meal / one plate' },
-  { id: 'large', name: 'Large', ratio: 1.35, cue: 'Heaped plate / takeout box' },
-  { id: 'xlarge', name: 'Very large', ratio: 1.75, cue: 'Two plates / very filling' }
+  { id: 'tiny',    name: 'Tiny',       ratio: 0.5,  cue: 'A few bites / half snack' },
+  { id: 'small',   name: 'Small',      ratio: 0.75, cue: 'Palm size / light plate' },
+  { id: 'regular', name: 'Regular',    ratio: 1,    cue: 'Standard meal / one plate' },
+  { id: 'large',   name: 'Large',      ratio: 1.35, cue: 'Heaped plate / takeout box' },
+  { id: 'xlarge',  name: 'Very large', ratio: 1.75, cue: 'Two plates / very filling' }
+];
+
+const CATEGORIES = [
+  { id: 'breakfast', name: 'Breakfast',    emoji: '🌅', foodIds: ['breakfast_sandwich', 'yogurt_granola', 'fruit_nuts', 'latte_sweet', 'protein_shake'] },
+  { id: 'light',     name: 'Light meal',   emoji: '🥗', foodIds: ['chicken_salad', 'soup_sandwich', 'sushi_rolls', 'yogurt_granola', 'fruit_nuts', 'chips_crackers'] },
+  { id: 'grains',    name: 'Rice & pasta', emoji: '🍚', foodIds: ['rice_bowl', 'pasta_plate', 'burrito', 'tacos', 'stir_fry', 'sushi_rolls'] },
+  { id: 'mains',     name: 'Mains',        emoji: '🍔', foodIds: ['burger_fries', 'pizza_slice', 'steak_potatoes', 'fried_chicken', 'soup_sandwich', 'chicken_salad'] },
+  { id: 'drinks',    name: 'Drinks',       emoji: '🥤', foodIds: ['protein_shake', 'latte_sweet'] },
+  { id: 'dessert',   name: 'Dessert',      emoji: '🍰', foodIds: ['dessert', 'ice_cream', 'chips_crackers'] }
 ];
 
 const DEFAULT_TARGET = 2000;
 const TOAST_MS = 5200;
+const STORAGE_KEY = 'calorieQuickLog.v1';
+
+// ─── localStorage helpers ────────────────────────
+function loadStorage() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { entries: [], settings: {} }; }
+  catch { return { entries: [], settings: {} }; }
+}
+
+function saveStorage(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
 
 const state = {
-  uid: getOrCreateUid(),
   todayKey: toDateKey(new Date()),
   dailyTarget: DEFAULT_TARGET,
   entries: [],
+  selectedCatId: null,
   selectedFoodId: null,
   lastDeleted: null,
-  db: null,
   toastTimer: null,
   edit: { id: null, foodId: null, sizeId: null }
 };
 
 const ui = {
-  pip1: document.getElementById('pip1'),
-  pip2: document.getElementById('pip2'),
-  todayLabel: document.getElementById('todayLabel'),
-  todayTotal: document.getElementById('todayTotal'),
-  targetText: document.getElementById('targetText'),
-  progressBar: document.getElementById('progressBar'),
-  themeBtn: document.getElementById('themeBtn'),
-  wizardTitle: document.getElementById('wizardTitle'),
-  wizardHint: document.getElementById('wizardHint'),
-  stepFood: document.getElementById('stepFood'),
-  stepSize: document.getElementById('stepSize'),
-  foodGrid: document.getElementById('foodGrid'),
-  sizeGrid: document.getElementById('sizeGrid'),
+  todayTotal:          document.getElementById('todayTotal'),
+  targetText:          document.getElementById('targetText'),
+  progressBar:         document.getElementById('progressBar'),
+  themeBtn:            document.getElementById('themeBtn'),
+  pip1:                document.getElementById('pip1'),
+  pip2:                document.getElementById('pip2'),
+  pip3:                document.getElementById('pip3'),
+  wizardTitle:         document.getElementById('wizardTitle'),
+  wizardHint:          document.getElementById('wizardHint'),
+  stepCat:             document.getElementById('stepCat'),
+  stepFood:            document.getElementById('stepFood'),
+  stepSize:            document.getElementById('stepSize'),
+  catGrid:             document.getElementById('catGrid'),
+  foodGrid:            document.getElementById('foodGrid'),
+  sizeGrid:            document.getElementById('sizeGrid'),
   selectedFoodPreview: document.getElementById('selectedFoodPreview'),
-  backToFoodBtn: document.getElementById('backToFoodBtn'),
-  historyList: document.getElementById('historyList'),
-  entryCount: document.getElementById('entryCount'),
-  toast: document.getElementById('toast'),
-  toastText: document.getElementById('toastText'),
-  undoBtn: document.getElementById('undoBtn'),
-  editDialog: document.getElementById('editDialog'),
-  editForm: document.getElementById('editForm'),
-  editFoodGrid: document.getElementById('editFoodGrid'),
-  editSizeGrid: document.getElementById('editSizeGrid'),
-  editPreview: document.getElementById('editPreview'),
-  cancelEditBtn: document.getElementById('cancelEditBtn')
+  backToCatBtn:        document.getElementById('backToCatBtn'),
+  backToFoodBtn:       document.getElementById('backToFoodBtn'),
+  historyList:         document.getElementById('historyList'),
+  entryCount:          document.getElementById('entryCount'),
+  toast:               document.getElementById('toast'),
+  toastText:           document.getElementById('toastText'),
+  undoBtn:             document.getElementById('undoBtn'),
+  editDialog:          document.getElementById('editDialog'),
+  editForm:            document.getElementById('editForm'),
+  editFoodGrid:        document.getElementById('editFoodGrid'),
+  editSizeGrid:        document.getElementById('editSizeGrid'),
+  editPreview:         document.getElementById('editPreview'),
+  cancelEditBtn:       document.getElementById('cancelEditBtn')
 };
-
-function getOrCreateUid() {
-  const key = 'calorie-flow-user-key';
-  const existing = localStorage.getItem(key);
-  if (existing) return existing;
-  const uid = crypto.randomUUID();
-  localStorage.setItem(key, uid);
-  return uid;
-}
 
 function toDateKey(date) {
   const y = date.getFullYear();
@@ -113,7 +109,7 @@ function prettyDate(date) {
 }
 
 function formatTime(ts) {
-  const d = ts?.toDate ? ts.toDate() : new Date();
+  const d = ts ? new Date(ts) : new Date();
   return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
@@ -140,51 +136,71 @@ function describeEntry(entry) {
 }
 
 const store = {
-  entriesCol() {
-    return collection(state.db, 'users', state.uid, 'entries');
+  loadAll() {
+    const data = loadStorage();
+    state.dailyTarget = Number(data.settings?.dailyTarget) || DEFAULT_TARGET;
+    state.entries = (data.entries || []).filter((e) => e.entryDate === state.todayKey);
   },
-  settingsDoc() {
-    return doc(state.db, 'users', state.uid, 'settings', 'app');
-  },
-  async loadAll() {
-    const settingsSnap = await getDoc(this.settingsDoc());
-    if (settingsSnap.exists()) {
-      state.dailyTarget = Number(settingsSnap.data().dailyTarget) || DEFAULT_TARGET;
-    }
-
-    const q = query(this.entriesCol(), where('entryDate', '==', state.todayKey), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    state.entries = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  },
-  async saveTarget(target) {
-    await setDoc(this.settingsDoc(), { dailyTarget: target, updatedAt: serverTimestamp() }, { merge: true });
+  saveTarget(target) {
+    const data = loadStorage();
+    data.settings = { ...data.settings, dailyTarget: target };
+    saveStorage(data);
     state.dailyTarget = target;
   },
-  async addEntry(payload) {
-    await addDoc(this.entriesCol(), {
+  addEntry(payload) {
+    const data = loadStorage();
+    const entry = {
+      id: crypto.randomUUID(),
       ...payload,
       entryDate: state.todayKey,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
+      createdAt: new Date().toISOString()
+    };
+    data.entries = [entry, ...(data.entries || [])];
+    saveStorage(data);
+    state.entries = data.entries.filter((e) => e.entryDate === state.todayKey);
   },
-  async updateEntry(id, payload) {
-    await updateDoc(doc(this.entriesCol(), id), {
-      ...payload,
-      updatedAt: serverTimestamp()
-    });
+  updateEntry(id, payload) {
+    const data = loadStorage();
+    data.entries = (data.entries || []).map((e) =>
+      e.id === id ? { ...e, ...payload, updatedAt: new Date().toISOString() } : e
+    );
+    saveStorage(data);
+    state.entries = data.entries.filter((e) => e.entryDate === state.todayKey);
   },
-  async deleteEntry(id) {
-    await deleteDoc(doc(this.entriesCol(), id));
+  deleteEntry(id) {
+    const data = loadStorage();
+    data.entries = (data.entries || []).filter((e) => e.id !== id);
+    saveStorage(data);
+    state.entries = data.entries.filter((e) => e.entryDate === state.todayKey);
+  },
+  restoreEntry(entry) {
+    const data = loadStorage();
+    data.entries = [entry, ...(data.entries || []).filter((e) => e.id !== entry.id)];
+    saveStorage(data);
+    state.entries = data.entries.filter((e) => e.entryDate === state.todayKey);
   }
 };
 
-function renderFoodGrid(root, activeId = null, compact = false) {
+function renderCatGrid(root) {
   root.innerHTML = '';
-  FOOD_DB.forEach((food) => {
+  CATEGORIES.forEach((cat) => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `food-btn${food.id === activeId ? ' active' : ''}${compact ? ' compact' : ''}`;
+    btn.className = 'cat-btn';
+    btn.dataset.catId = cat.id;
+    btn.innerHTML = `<span class="cat-emoji" aria-hidden="true">${cat.emoji}</span><span class="cat-name">${cat.name}</span>`;
+    root.appendChild(btn);
+  });
+}
+
+function renderFoodGrid(root, activeId = null, foodIds = null) {
+  root.innerHTML = '';
+  const foods = foodIds ? FOOD_DB.filter((f) => foodIds.includes(f.id)) : FOOD_DB;
+  const isCompact = root.classList.contains('compact-grid');
+  foods.forEach((food) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `food-btn${food.id === activeId ? ' active' : ''}${isCompact ? ' compact' : ''}`;
     btn.dataset.foodId = food.id;
     btn.style.setProperty('--food-color', food.color || DEFAULT_FOOD_COLOR);
     btn.innerHTML = `<span class="food-emoji-wrap" aria-hidden="true">${food.emoji}</span><span class="food-name">${food.name}</span><small>~${food.baseCalories} kcal</small>`;
@@ -205,19 +221,28 @@ function renderSizeGrid(root, activeId = null) {
 }
 
 function showStep(step) {
-  ui.pip1.classList.toggle('active', step === 'food');
-  ui.pip2.classList.toggle('active', step === 'size');
+  ui.pip1.classList.toggle('active', step === 'cat');
+  ui.pip2.classList.toggle('active', step === 'food');
+  ui.pip3.classList.toggle('active', step === 'size');
 
-  if (step === 'food') {
-    ui.stepFood.hidden = false;
-    ui.stepSize.hidden = true;
-    ui.wizardTitle.textContent = 'What did you eat?';
-    ui.wizardHint.textContent = 'Pick the closest option.';
+  ui.stepCat.hidden  = step !== 'cat';
+  ui.stepFood.hidden = step !== 'food';
+  ui.stepSize.hidden = step !== 'size';
+
+  if (step === 'cat') {
+    ui.wizardTitle.textContent = 'What type of meal?';
+    ui.wizardHint.textContent = 'Pick a category to narrow choices.';
     return;
   }
 
-  ui.stepFood.hidden = true;
-  ui.stepSize.hidden = false;
+  if (step === 'food') {
+    const cat = CATEGORIES.find((c) => c.id === state.selectedCatId);
+    ui.wizardTitle.textContent = cat ? cat.name : 'What did you eat?';
+    ui.wizardHint.textContent = 'Pick the closest option.';
+    renderFoodGrid(ui.foodGrid, null, cat ? cat.foodIds : null);
+    return;
+  }
+
   const food = findFood(state.selectedFoodId);
   ui.wizardTitle.textContent = 'How much?';
   ui.wizardHint.textContent = 'Tap a size to log instantly.';
@@ -231,14 +256,13 @@ function totalCalories() {
 function renderSummary() {
   const total = totalCalories();
   const ratio = Math.min(1.25, total / Math.max(1, state.dailyTarget));
-  ui.todayLabel.textContent = prettyDate(new Date());
-  ui.todayTotal.textContent = `${total} kcal`;
-  ui.targetText.textContent = `${total} / ${state.dailyTarget} kcal`;
+  ui.todayTotal.textContent = total;
+  ui.targetText.textContent = state.dailyTarget;
   ui.progressBar.style.width = `${Math.min(100, ratio * 100)}%`;
 }
 
 function renderHistory() {
-  const sorted = [...state.entries].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+  const sorted = [...state.entries].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   ui.entryCount.textContent = `${sorted.length} ${sorted.length === 1 ? 'entry' : 'entries'}`;
   ui.historyList.innerHTML = '';
 
@@ -288,16 +312,16 @@ function initTheme() {
   applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 }
 
-async function refresh() {
-  await store.loadAll();
+function refresh() {
+  store.loadAll();
   renderSummary();
   renderHistory();
 }
 
-async function saveChoice(foodId, sizeId) {
+function saveChoice(foodId, sizeId) {
   const food = findFood(foodId);
   const size = findSize(sizeId);
-  await store.addEntry({
+  store.addEntry({
     foodId,
     foodName: food.name,
     foodEmoji: food.emoji,
@@ -305,7 +329,7 @@ async function saveChoice(foodId, sizeId) {
     sizeName: size.name,
     calories: estimateCalories(foodId, sizeId)
   });
-  await refresh();
+  refresh();
   showToast('Saved');
 }
 
@@ -313,7 +337,7 @@ function openEdit(entry) {
   state.edit.id = entry.id;
   state.edit.foodId = entry.foodId;
   state.edit.sizeId = entry.sizeId;
-  renderFoodGrid(ui.editFoodGrid, state.edit.foodId, true);
+  renderFoodGrid(ui.editFoodGrid, state.edit.foodId, null);
   renderSizeGrid(ui.editSizeGrid, state.edit.sizeId);
   ui.editPreview.textContent = `${estimateCalories(state.edit.foodId, state.edit.sizeId)} kcal`;
   ui.editDialog.showModal();
@@ -323,16 +347,14 @@ function updateEditPreview() {
   ui.editPreview.textContent = `${estimateCalories(state.edit.foodId, state.edit.sizeId)} kcal`;
 }
 
-async function initFirebase() {
-  const module = await import('./firebase-config.js');
-  if (!module.FIREBASE_CONFIG?.projectId) {
-    throw new Error('Set FIREBASE_CONFIG in firebase-config.js');
-  }
-  const app = initializeApp(module.FIREBASE_CONFIG);
-  state.db = getFirestore(app);
-}
-
 function bindEvents() {
+  ui.catGrid.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-cat-id]');
+    if (!btn) return;
+    state.selectedCatId = btn.dataset.catId;
+    showStep('food');
+  });
+
   ui.foodGrid.addEventListener('click', (event) => {
     const btn = event.target.closest('button[data-food-id]');
     if (!btn) return;
@@ -340,16 +362,17 @@ function bindEvents() {
     showStep('size');
   });
 
-  ui.sizeGrid.addEventListener('click', async (event) => {
+  ui.sizeGrid.addEventListener('click', (event) => {
     const btn = event.target.closest('button[data-size-id]');
     if (!btn || !state.selectedFoodId) return;
-    await saveChoice(state.selectedFoodId, btn.dataset.sizeId);
-    showStep('food');
+    saveChoice(state.selectedFoodId, btn.dataset.sizeId);
+    showStep('cat');
   });
 
+  ui.backToCatBtn.addEventListener('click', () => showStep('cat'));
   ui.backToFoodBtn.addEventListener('click', () => showStep('food'));
 
-  ui.historyList.addEventListener('click', async (event) => {
+  ui.historyList.addEventListener('click', (event) => {
     const btn = event.target.closest('button[data-action]');
     if (!btn) return;
     const entry = state.entries.find((e) => e.id === btn.dataset.id);
@@ -361,17 +384,16 @@ function bindEvents() {
     }
 
     state.lastDeleted = { ...entry };
-    await store.deleteEntry(entry.id);
-    await refresh();
+    store.deleteEntry(entry.id);
+    refresh();
     showToast('Deleted', true);
   });
 
-  ui.undoBtn.addEventListener('click', async () => {
+  ui.undoBtn.addEventListener('click', () => {
     if (!state.lastDeleted) return;
-    const { id, ...payload } = state.lastDeleted;
-    await addDoc(store.entriesCol(), { ...payload, updatedAt: serverTimestamp() });
+    store.restoreEntry(state.lastDeleted);
     state.lastDeleted = null;
-    await refresh();
+    refresh();
     showToast('Restored');
   });
 
@@ -379,7 +401,7 @@ function bindEvents() {
     const btn = event.target.closest('button[data-food-id]');
     if (!btn) return;
     state.edit.foodId = btn.dataset.foodId;
-    renderFoodGrid(ui.editFoodGrid, state.edit.foodId, true);
+    renderFoodGrid(ui.editFoodGrid, state.edit.foodId, null);
     updateEditPreview();
   });
 
@@ -391,11 +413,11 @@ function bindEvents() {
     updateEditPreview();
   });
 
-  ui.editForm.addEventListener('submit', async (event) => {
+  ui.editForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const food = findFood(state.edit.foodId);
     const size = findSize(state.edit.sizeId);
-    await store.updateEntry(state.edit.id, {
+    store.updateEntry(state.edit.id, {
       foodId: food.id,
       foodName: food.name,
       foodEmoji: food.emoji,
@@ -404,17 +426,17 @@ function bindEvents() {
       calories: estimateCalories(food.id, size.id)
     });
     ui.editDialog.close();
-    await refresh();
+    refresh();
     showToast('Updated');
   });
 
   ui.cancelEditBtn.addEventListener('click', () => ui.editDialog.close());
 
   document.querySelectorAll('[data-target-adjust]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       const delta = Number(btn.dataset.targetAdjust);
       const nextTarget = Math.max(900, state.dailyTarget + delta);
-      await store.saveTarget(nextTarget);
+      store.saveTarget(nextTarget);
       renderSummary();
       showToast('Target updated');
     });
@@ -426,20 +448,13 @@ function bindEvents() {
   });
 }
 
-async function boot() {
+function boot() {
   initTheme();
-  renderFoodGrid(ui.foodGrid);
+  renderCatGrid(ui.catGrid);
   renderSizeGrid(ui.sizeGrid);
-  showStep('food');
+  showStep('cat');
   bindEvents();
-
-  try {
-    await initFirebase();
-    await refresh();
-  } catch (error) {
-    console.error(error);
-    ui.historyList.innerHTML = '<p class="muted">Firebase setup required. Add firebase-config.js from template.</p>';
-  }
+  refresh();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js').catch(() => {});

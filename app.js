@@ -27,9 +27,9 @@ const FOOD_DB = [
   { id: 'fried_rice',         name: 'Fried rice',           emoji: '🥘', baseCalories: 560,  color: '#d97706' },
   { id: 'grain_bowl',         name: 'Grain bowl',           emoji: '🌾', baseCalories: 430,  color: '#16a34a' },
   { id: 'congee',             name: 'Congee',               emoji: '🍲', baseCalories: 280,  color: '#0d9488' },
-  { id: 'bibimbap',           name: 'Bibimbap',             emoji: '🍜', baseCalories: 590,  color: '#dc2626' },
-  { id: 'paella',             name: 'Paella',               emoji: '🥘', baseCalories: 620,  color: '#d97706' },
-  { id: 'dal_rice',           name: 'Dal & rice',           emoji: '🫕', baseCalories: 480,  color: '#ea580c' },
+  { id: 'bibimbap',           name: 'Bibimbap',             emoji: '🥗', baseCalories: 590,  color: '#dc2626' },
+  { id: 'paella',             name: 'Paella',               emoji: '🫕', baseCalories: 620,  color: '#d97706' },
+  { id: 'dal_rice',           name: 'Dal & rice',           emoji: '🍛', baseCalories: 480,  color: '#ea580c' },
 
   // ── Pasta & Noodles ───────────────────────────────────────────────
   { id: 'pasta_plate',        name: 'Pasta marinara',       emoji: '🍝', baseCalories: 580,  color: '#ea580c' },
@@ -37,8 +37,8 @@ const FOOD_DB = [
   { id: 'lasagna',            name: 'Lasagna',              emoji: '🫙', baseCalories: 720,  color: '#ea580c' },
   { id: 'ramen',              name: 'Ramen',                emoji: '🍜', baseCalories: 680,  color: '#dc2626' },
   { id: 'pad_thai',           name: 'Pad thai',             emoji: '🥢', baseCalories: 600,  color: '#d97706' },
-  { id: 'udon',               name: 'Udon noodles',         emoji: '🍜', baseCalories: 520,  color: '#4f46e5' },
-  { id: 'soba',               name: 'Soba noodles',         emoji: '🍜', baseCalories: 420,  color: '#0d9488' },
+  { id: 'udon',               name: 'Udon noodles',         emoji: '🍲', baseCalories: 520,  color: '#4f46e5' },
+  { id: 'soba',               name: 'Soba noodles',         emoji: '🍱', baseCalories: 420,  color: '#0d9488' },
   { id: 'lo_mein',            name: 'Lo mein',              emoji: '🥡', baseCalories: 560,  color: '#d97706' },
 
   // ── Mains ─────────────────────────────────────────────────────────
@@ -46,17 +46,17 @@ const FOOD_DB = [
   { id: 'pizza_slice',        name: 'Pizza',                emoji: '🍕', baseCalories: 320,  color: '#db2777' },
   { id: 'steak_potatoes',     name: 'Steak + potatoes',     emoji: '🥩', baseCalories: 760,  color: '#dc2626' },
   { id: 'fried_chicken',      name: 'Fried chicken',        emoji: '🍗', baseCalories: 700,  color: '#d97706' },
-  { id: 'bbq_ribs',           name: 'BBQ ribs',             emoji: '🥩', baseCalories: 820,  color: '#dc2626' },
-  { id: 'fish_chips',         name: 'Fish & chips',         emoji: '🐟', baseCalories: 740,  color: '#2563eb' },
+  { id: 'bbq_ribs',           name: 'BBQ ribs',             emoji: '🍖', baseCalories: 820,  color: '#dc2626' },
+  { id: 'fish_chips',         name: 'Fish & chips',         emoji: '🍟', baseCalories: 740,  color: '#2563eb' },
   { id: 'grilled_salmon',     name: 'Grilled salmon',       emoji: '🐟', baseCalories: 520,  color: '#2563eb' },
-  { id: 'pork_chops',         name: 'Pork chops',           emoji: '🍖', baseCalories: 640,  color: '#d97706' },
+  { id: 'pork_chops',         name: 'Pork chops',           emoji: '🥓', baseCalories: 640,  color: '#d97706' },
 
   // ── Mexican ───────────────────────────────────────────────────────
   { id: 'tacos',              name: 'Tacos',                emoji: '🌮', baseCalories: 520,  color: '#d97706' },
   { id: 'burrito',            name: 'Burrito',              emoji: '🌯', baseCalories: 760,  color: '#ea580c' },
-  { id: 'nachos',             name: 'Nachos',               emoji: '🫔', baseCalories: 560,  color: '#ea580c' },
+  { id: 'nachos',             name: 'Nachos',               emoji: '🧀', baseCalories: 560,  color: '#ea580c' },
   { id: 'quesadilla',         name: 'Quesadilla',           emoji: '🫓', baseCalories: 530,  color: '#d97706' },
-  { id: 'enchiladas',         name: 'Enchiladas',           emoji: '🌯', baseCalories: 640,  color: '#ea580c' },
+  { id: 'enchiladas',         name: 'Enchiladas',           emoji: '🫕', baseCalories: 640,  color: '#ea580c' },
   { id: 'fajitas',            name: 'Fajitas',              emoji: '🌶️', baseCalories: 560,  color: '#dc2626' },
   { id: 'tamales',            name: 'Tamales',              emoji: '🫔', baseCalories: 490,  color: '#d97706' },
   { id: 'elote',              name: 'Elote',                emoji: '🌽', baseCalories: 310,  color: '#16a34a' },
@@ -65,11 +65,11 @@ const FOOD_DB = [
   { id: 'soup_sandwich',      name: 'Soup + sandwich',      emoji: '🥣', baseCalories: 540,  color: '#7c3aed' },
   { id: 'hot_dog',            name: 'Hot dog',              emoji: '🌭', baseCalories: 380,  color: '#dc2626' },
   { id: 'club_sandwich',      name: 'Club sandwich',        emoji: '🥪', baseCalories: 520,  color: '#0d9488' },
-  { id: 'tuna_melt',          name: 'Tuna melt',            emoji: '🥪', baseCalories: 480,  color: '#2563eb' },
-  { id: 'blt',                name: 'BLT',                  emoji: '🥪', baseCalories: 440,  color: '#dc2626' },
+  { id: 'tuna_melt',          name: 'Tuna melt',            emoji: '🐟', baseCalories: 480,  color: '#2563eb' },
+  { id: 'blt',                name: 'BLT',                  emoji: '🥓', baseCalories: 440,  color: '#dc2626' },
   { id: 'philly',             name: 'Philly cheesesteak',   emoji: '🥖', baseCalories: 660,  color: '#d97706' },
   { id: 'grilled_cheese',     name: 'Grilled cheese',       emoji: '🧀', baseCalories: 480,  color: '#d97706' },
-  { id: 'sub_sandwich',       name: 'Italian sub',          emoji: '🥖', baseCalories: 580,  color: '#ea580c' },
+  { id: 'sub_sandwich',       name: 'Italian sub',          emoji: '🥙', baseCalories: 580,  color: '#ea580c' },
 
   // ── Snacks & Sweets ───────────────────────────────────────────────
   { id: 'chips_crackers',     name: 'Chips & crackers',     emoji: '🥨', baseCalories: 220,  color: '#db2777' },

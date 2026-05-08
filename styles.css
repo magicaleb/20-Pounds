@@ -219,7 +219,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
   gap: 7px;
 }
 
@@ -244,8 +244,8 @@ h3     { font-size: .95rem;  font-weight: 700; }
   border-color: var(--primary);
 }
 
-.cat-emoji { font-size: 1.6rem; line-height: 1; }
-.cat-name  { font-size: .82rem; }
+.cat-emoji { font-size: 2rem; line-height: 1; }
+.cat-name  { font-size: .92rem; }
 
 /* ─── Step 2: food grid ──────────────────────── */
 .food-grid {
@@ -253,40 +253,39 @@ h3     { font-size: .95rem;  font-weight: 700; }
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(4, 1fr);
   gap: 7px;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  overflow: hidden;
 }
 
 /* food card */
 .food-btn {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   padding: 8px;
   border-radius: var(--r-sm);
   border: 1.5px solid var(--border);
   background: var(--card);
   text-align: left;
   transition: transform 80ms ease, box-shadow 80ms ease;
+  overflow: hidden;
 }
 .food-btn:active { transform: scale(0.96); }
 
 /* coloured emoji wrap */
 .food-emoji-wrap {
-  width: 36px; height: 36px;
+  width: 44px; height: 44px;
   border-radius: var(--r-xs);
   background: color-mix(in oklab, var(--food-color, var(--primary)) 14%, var(--card));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 1.6rem;
   flex-shrink: 0;
 }
-.food-btn .food-name { font-size: .82rem; font-weight: 700; color: var(--text); line-height: 1.2; }
-.food-btn small      { font-size: .70rem; color: var(--muted); }
+.food-btn .food-name { font-size: .90rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+.food-btn small      { font-size: .75rem; color: var(--muted); }
 
 .food-btn.active {
   border-color: var(--food-color, var(--primary));
@@ -296,7 +295,14 @@ h3     { font-size: .95rem;  font-weight: 700; }
 
 /* compact variant for the edit dialog */
 .food-btn.compact .food-emoji-wrap { width: 30px; height: 30px; font-size: 1.1rem; }
-.compact-grid { max-height: 26vh; overflow-y: auto; }
+.compact-grid {
+  grid-template-rows: unset;
+  max-height: 26vh;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
 
 /* ─── Step 3: size grid ──────────────────────── */
 .selected-food {
@@ -499,6 +505,6 @@ h3     { font-size: .95rem;  font-weight: 700; }
 
 /* ─── Responsive ─────────────────────────────── */
 @media (min-width: 580px) {
-  .cat-grid  { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); }
-  .food-grid { grid-template-columns: repeat(3, 1fr); }
+  .cat-grid  { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
+  .food-grid { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
 }

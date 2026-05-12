@@ -295,9 +295,11 @@ h3     { font-size: .95rem;  font-weight: 700; }
 
 /* compact variant for the edit dialog */
 .food-btn.compact .food-emoji-wrap { width: 30px; height: 30px; font-size: 1.1rem; }
+.food-btn.compact { min-height: 72px; }
 .compact-grid {
+  grid-template-columns: repeat(2, 1fr);
   grid-template-rows: unset;
-  max-height: 26vh;
+  max-height: 45vh;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
@@ -469,6 +471,8 @@ h3     { font-size: .95rem;  font-weight: 700; }
 /* ─── Edit dialog ────────────────────────────── */
 .edit-dialog {
   width: min(92vw, 540px);
+  max-height: min(90dvh, 720px);
+  overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: var(--r);
   background: var(--card);
@@ -507,4 +511,6 @@ h3     { font-size: .95rem;  font-weight: 700; }
 @media (min-width: 580px) {
   .cat-grid  { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
   .food-grid { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
+  /* Keep 2 cols in compact (edit dialog) so each button stays wide enough to read */
+  .food-grid.compact-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: unset; }
 }

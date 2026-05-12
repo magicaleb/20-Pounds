@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" content="#7c3aed" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Calorie Flow" />
     <title>Calorie Flow</title>
@@ -13,55 +13,69 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="top card">
-        <div>
-          <p id="todayLabel" class="muted">Today</p>
-          <h1 id="todayTotal">0 kcal</h1>
-        </div>
-        <button id="themeBtn" class="icon-btn" type="button" aria-label="Toggle theme">◐</button>
-      </header>
 
-      <section class="card progress-card" aria-label="Daily progress">
-        <div class="progress-head">
-          <div>
-            <p class="muted">Daily target</p>
-            <p id="targetText" class="target-text">0 / 2000 kcal</p>
-          </div>
-          <div class="target-controls">
-            <button type="button" class="small-btn" data-target-adjust="-100">−100</button>
-            <button type="button" class="small-btn" data-target-adjust="100">+100</button>
-          </div>
+      <!-- ① Thin progress strip -->
+      <div class="progress-strip">
+        <div class="strip-info">
+          <span id="todayTotal">0</span>&thinsp;/&thinsp;<span id="targetText">2000</span>&thinsp;kcal
         </div>
-        <div class="bar"><div id="progressBar" class="bar-fill"></div></div>
-      </section>
+        <div class="strip-bar">
+          <div id="progressBar" class="bar-fill"></div>
+        </div>
+        <div class="strip-controls">
+          <button type="button" class="small-btn" data-target-adjust="-100" aria-label="Decrease target">−</button>
+          <button type="button" class="small-btn" data-target-adjust="100" aria-label="Increase target">+</button>
+          <button id="themeBtn" class="flat-icon-btn" type="button" aria-label="Toggle theme">◐</button>
+        </div>
+      </div>
 
-      <section class="card wizard-card" aria-label="Quick entry wizard">
+      <!-- ② Wizard -->
+      <section class="wizard-card" aria-label="Quick entry wizard">
         <div class="wizard-head">
-          <h2 id="wizardTitle">Step 1 · What did you eat?</h2>
-          <p id="wizardHint" class="muted">Pick the closest option. Precision is not required.</p>
+          <div class="step-track">
+            <span class="step-pip active" id="pip1">1</span>
+            <span class="step-arrow">›</span>
+            <span class="step-pip" id="pip2">2</span>
+            <span class="step-arrow">›</span>
+            <span class="step-pip" id="pip3">3</span>
+          </div>
+          <h2 id="wizardTitle">What type of meal?</h2>
+          <p id="wizardHint" class="muted">Pick a category to narrow choices.</p>
         </div>
 
-        <div id="stepFood" class="wizard-step active">
+        <!-- Step 1: category -->
+        <div id="stepCat" class="wizard-step">
+          <div id="catGrid" class="cat-grid"></div>
+        </div>
+
+        <!-- Step 2: food (filtered by category) -->
+        <div id="stepFood" class="wizard-step" hidden>
           <div id="foodGrid" class="food-grid"></div>
+          <div class="wizard-actions">
+            <button id="backToCatBtn" class="secondary-btn" type="button">&#8592; Back</button>
+          </div>
         </div>
 
+        <!-- Step 3: size -->
         <div id="stepSize" class="wizard-step" hidden>
           <div id="selectedFoodPreview" class="selected-food"></div>
           <div id="sizeGrid" class="size-grid"></div>
           <div class="wizard-actions">
-            <button id="backToFoodBtn" class="secondary-btn" type="button">Previous</button>
+            <button id="backToFoodBtn" class="secondary-btn" type="button">&#8592; Back</button>
           </div>
         </div>
       </section>
 
-      <section class="card history-card">
+      <!-- ③ Today's log (inside shell, scrolls internally) -->
+      <section class="history-section card" aria-label="Today's log">
         <div class="history-head">
-          <h2>Today’s entries</h2>
+          <h2>Today's log</h2>
           <p id="entryCount" class="muted">0 entries</p>
         </div>
         <div id="historyList" class="history-list"></div>
       </section>
-    </div>
+
+    </div><!-- /.app-shell -->
 
     <dialog id="editDialog" class="edit-dialog">
       <form id="editForm" method="dialog" class="edit-form">

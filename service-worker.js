@@ -1,11 +1,13 @@
-const CACHE_NAME = 'calorie-flow-v1';
+const CACHE_NAME = 'calorie-flow-v2';
+const BASE_URL = self.registration.scope;
+const INDEX_URL = new URL('index.html', BASE_URL).toString();
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/manifest.webmanifest',
-  '/icons/icon.svg'
+  new URL('', BASE_URL).toString(),
+  INDEX_URL,
+  new URL('styles.css', BASE_URL).toString(),
+  new URL('app.js', BASE_URL).toString(),
+  new URL('manifest.webmanifest', BASE_URL).toString(),
+  new URL('icons/icon.svg', BASE_URL).toString()
 ];
 
 self.addEventListener('install', (event) => {
@@ -31,7 +33,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match('/index.html'));
+        .catch(() => caches.match(INDEX_URL));
     })
   );
 });

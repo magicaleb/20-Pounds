@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calorie-flow-v2';
+const CACHE_NAME = 'calorie-flow-v3';
 const BASE_URL = self.registration.scope;
 const INDEX_URL = new URL('index.html', BASE_URL).toString();
 const ASSETS = [

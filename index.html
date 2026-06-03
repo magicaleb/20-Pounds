@@ -1,15 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#7c3aed" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Calorie Flow" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#7c3aed">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Calorie Flow">
     <title>Calorie Flow</title>
-    <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="icons/icon.svg" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div class="app-shell">
@@ -79,10 +79,16 @@
 
     <dialog id="editDialog" class="edit-dialog">
       <form id="editForm" method="dialog" class="edit-form">
-        <h3>Edit entry</h3>
-        <p class="muted">Food</p>
+        <div class="edit-title-row">
+          <div>
+            <h3>Edit entry</h3>
+            <p class="muted">Pick a food and size, then save.</p>
+          </div>
+          <button type="button" id="closeEditBtn" class="icon-btn" aria-label="Close editor">×</button>
+        </div>
+        <p class="muted edit-food-label">Food</p>
         <div id="editFoodGrid" class="food-grid compact-grid"></div>
-        <p class="muted">Size</p>
+        <p class="muted edit-size-label">Size</p>
         <div id="editSizeGrid" class="size-grid"></div>
         <p id="editPreview" class="edit-preview">0 kcal</p>
         <div class="dialog-actions">

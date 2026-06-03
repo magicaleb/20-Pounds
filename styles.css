@@ -51,7 +51,7 @@
 
 /* ─── Reset / base ───────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; overflow: hidden; }
+html, body { min-height: 100%; margin: 0; overflow: hidden; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -73,10 +73,10 @@ button { font-family: inherit; cursor: pointer; }
   height: 100dvh;
   max-width: 520px;
   margin: 0 auto;
-  padding: 8px 12px;
+  padding: max(6px, env(safe-area-inset-top)) 12px max(6px, env(safe-area-inset-bottom));
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 8px;
+  grid-template-rows: auto minmax(0, 1fr) minmax(74px, auto);
+  gap: clamp(5px, 1.2vh, 8px);
   overflow: hidden;
 }
 
@@ -97,7 +97,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: clamp(4px, 1vh, 6px) 12px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
@@ -173,8 +173,9 @@ h3     { font-size: .95rem;  font-weight: 700; }
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 10px 12px 8px;
-  gap: 6px;
+  min-height: 0;
+  padding: clamp(7px, 1.4vh, 10px) 12px clamp(6px, 1.2vh, 8px);
+  gap: clamp(4px, 1vh, 6px);
   box-shadow: var(--shadow-xs);
 }
 
@@ -186,7 +187,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   margin-bottom: 2px;
 }
 .step-pip {
-  width: 24px; height: 24px;
+  width: clamp(20px, 4.8vh, 24px); height: clamp(20px, 4.8vh, 24px);
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -203,7 +204,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
 }
 .step-arrow { color: var(--muted); font-size: .7rem; }
 
-.wizard-head  { flex: 0 0 auto; display: grid; gap: 2px; }
+.wizard-head  { flex: 0 0 auto; display: grid; gap: 1px; }
 .wizard-step  {
   flex: 1;
   min-height: 0;
@@ -220,7 +221,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  gap: 7px;
+  gap: clamp(4px, 1vh, 7px);
 }
 
 .cat-btn {
@@ -228,7 +229,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: clamp(2px, .7vh, 5px);
   border-radius: var(--r-sm);
   border: 1.5px solid var(--border);
   background: var(--card);
@@ -244,8 +245,8 @@ h3     { font-size: .95rem;  font-weight: 700; }
   border-color: var(--primary);
 }
 
-.cat-emoji { font-size: 2rem; line-height: 1; }
-.cat-name  { font-size: .92rem; }
+.cat-emoji { font-size: clamp(1.35rem, 5vh, 2rem); line-height: 1; }
+.cat-name  { font-size: clamp(.78rem, 2.1vh, .92rem); }
 
 /* ─── Step 2: food grid ──────────────────────── */
 .food-grid {
@@ -254,7 +255,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  gap: 7px;
+  gap: clamp(4px, 1vh, 7px);
   overflow: hidden;
 }
 
@@ -262,8 +263,8 @@ h3     { font-size: .95rem;  font-weight: 700; }
 .food-btn {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px;
+  gap: clamp(2px, .7vh, 4px);
+  padding: clamp(5px, 1.1vh, 8px);
   border-radius: var(--r-sm);
   border: 1.5px solid var(--border);
   background: var(--card);
@@ -275,17 +276,17 @@ h3     { font-size: .95rem;  font-weight: 700; }
 
 /* coloured emoji wrap */
 .food-emoji-wrap {
-  width: 44px; height: 44px;
+  width: clamp(30px, 7vh, 44px); height: clamp(30px, 7vh, 44px);
   border-radius: var(--r-xs);
   background: color-mix(in oklab, var(--food-color, var(--primary)) 14%, var(--card));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
+  font-size: clamp(1.15rem, 4.2vh, 1.6rem);
   flex-shrink: 0;
 }
-.food-btn .food-name { font-size: .90rem; font-weight: 700; color: var(--text); line-height: 1.2; }
-.food-btn small      { font-size: .75rem; color: var(--muted); }
+.food-btn .food-name { font-size: clamp(.78rem, 2vh, .90rem); font-weight: 700; color: var(--text); line-height: 1.15; }
+.food-btn small      { font-size: clamp(.68rem, 1.7vh, .75rem); color: var(--muted); }
 
 .food-btn.active {
   border-color: var(--food-color, var(--primary));
@@ -295,11 +296,20 @@ h3     { font-size: .95rem;  font-weight: 700; }
 
 /* compact variant for the edit dialog */
 .food-btn.compact .food-emoji-wrap { width: 30px; height: 30px; font-size: 1.1rem; }
-.food-btn.compact { min-height: 72px; }
+.food-btn.compact {
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+}
+.food-btn.compact .food-emoji-wrap { grid-row: 1 / span 2; }
 .compact-grid {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(64px, auto);
   grid-template-rows: unset;
-  max-height: 45vh;
+  align-content: start;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
@@ -312,7 +322,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 12px;
+  padding: clamp(5px, 1vh, 7px) 12px;
   border-radius: var(--r-sm);
   background: var(--primary-soft);
   border: 1.5px solid color-mix(in oklab, var(--primary) 28%, transparent);
@@ -326,7 +336,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: clamp(4px, .9vh, 5px);
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
@@ -338,7 +348,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
+  padding: clamp(6px, 1.2vh, 8px) 12px;
   border-radius: var(--r-sm);
   border: 1.5px solid var(--border);
   background: var(--card);
@@ -375,7 +385,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
 .wizard-actions { flex: 0 0 auto; }
 
 .secondary-btn {
-  height: 36px;
+  min-height: 34px;
   padding: 0 16px;
   border-radius: 999px;
   border: 1.5px solid var(--border);
@@ -389,24 +399,37 @@ h3     { font-size: .95rem;  font-weight: 700; }
 
 /* ─── Today's log (3rd row of shell) ─────────── */
 .history-section {
-  overflow-y: auto;
-  max-height: 26vh;
-  padding: 8px 12px 10px;
+  min-height: 0;
+  overflow: hidden;
+  max-height: min(24vh, 180px);
+  padding: clamp(6px, 1vh, 8px) 12px clamp(8px, 1.2vh, 10px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 4px;
 }
 
 .history-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
-.history-list { display: flex; flex-direction: column; gap: 5px; }
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
 
 .history-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 10px;
+  padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--card);
@@ -470,20 +493,56 @@ h3     { font-size: .95rem;  font-weight: 700; }
 
 /* ─── Edit dialog ────────────────────────────── */
 .edit-dialog {
-  width: min(92vw, 540px);
-  max-height: min(90dvh, 720px);
-  overflow-y: auto;
+  width: min(94vw, 540px);
+  max-height: min(92dvh, 720px);
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--r);
   background: var(--card);
   color: var(--text);
-  padding: 20px;
+  padding: 0;
   box-shadow: var(--shadow-lg);
 }
 .edit-dialog::backdrop { background: rgba(0,0,0,.55); backdrop-filter: blur(4px); }
-.edit-form      { display: grid; gap: 12px; }
+.edit-form {
+  max-height: min(92dvh, 720px);
+  display: grid;
+  grid-template-rows: auto auto minmax(120px, 1fr) auto auto auto auto;
+  gap: 10px;
+  padding: clamp(12px, 2.5vw, 18px);
+  overflow: hidden;
+}
+.edit-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.edit-food-label, .edit-size-label { font-weight: 700; }
+.edit-dialog .compact-grid {
+  max-height: none;
+  padding-right: 2px;
+}
+.edit-dialog .size-grid {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  overflow: visible;
+}
+.edit-dialog .size-btn {
+  min-height: 58px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  text-align: center;
+}
+.edit-dialog .size-dot { display: none; }
+.edit-dialog .size-btn .size-label > span { display: none; }
+.edit-dialog .size-btn strong { font-size: .76rem; }
 .edit-preview   { font-weight: 900; font-size: 1.3rem; text-align: center; color: var(--primary); }
-.dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
+.dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
 /* ─── Toast ──────────────────────────────────── */
 .toast {
@@ -513,4 +572,28 @@ h3     { font-size: .95rem;  font-weight: 700; }
   .food-grid { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
   /* Keep 2 cols in compact (edit dialog) so each button stays wide enough to read */
   .food-grid.compact-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: unset; }
+}
+
+@media (max-height: 620px) {
+  .muted { font-size: .78rem; }
+  h2 { font-size: .95rem; }
+  .progress-strip { gap: 6px; }
+  .wizard-card { padding-inline: 10px; }
+  .history-section { max-height: min(20vh, 120px); }
+}
+
+@media (max-height: 540px) {
+  .app-shell { grid-template-rows: auto minmax(0, 1fr) minmax(54px, auto); }
+  .step-track { margin-bottom: 0; }
+  .wizard-head { grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; }
+  .wizard-head .muted { display: none; }
+  .history-section { max-height: min(18vh, 100px); }
+  .history-head { margin-bottom: 4px; }
+  .history-list { gap: 4px; }
+  .history-item { padding-block: 4px; }
+}
+
+@media (max-width: 390px) {
+  .item-kcal-badge { display: none; }
+  .edit-dialog .size-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

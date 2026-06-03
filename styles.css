@@ -400,9 +400,12 @@ h3     { font-size: .95rem;  font-weight: 700; }
 /* ─── Today's log (3rd row of shell) ─────────── */
 .history-section {
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   max-height: min(24vh, 180px);
   padding: clamp(6px, 1vh, 8px) 12px clamp(8px, 1.2vh, 10px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 4px;
 }
 
 .history-head {
@@ -411,7 +414,16 @@ h3     { font-size: .95rem;  font-weight: 700; }
   align-items: baseline;
   margin-bottom: 6px;
 }
-.history-list { display: flex; flex-direction: column; gap: 5px; }
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
 
 .history-item {
   display: flex;
@@ -567,23 +579,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   h2 { font-size: .95rem; }
   .progress-strip { gap: 6px; }
   .wizard-card { padding-inline: 10px; }
-  .history-section { max-height: 21vh; }
-  .selected-food { padding-block: 4px; font-size: .86rem; }
-  #stepSize .size-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-auto-rows: minmax(0, 1fr);
-    overflow: hidden;
-    gap: 3px;
-  }
-  #stepSize .size-btn {
-    padding-block: 4px;
-    min-height: 0;
-    gap: 8px;
-    justify-content: center;
-  }
-  .size-btn strong { font-size: .82rem; }
-  .size-btn span { display: none; }
+  .history-section { max-height: min(20vh, 120px); }
 }
 
 @media (max-height: 540px) {
@@ -591,8 +587,7 @@ h3     { font-size: .95rem;  font-weight: 700; }
   .step-track { margin-bottom: 0; }
   .wizard-head { grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; }
   .wizard-head .muted { display: none; }
-  .selected-food .food-emoji-wrap { width: 28px; height: 28px; font-size: 1.05rem; }
-  .size-btn { gap: 6px; }
+  .history-section { max-height: min(18vh, 100px); }
   .history-head { margin-bottom: 4px; }
   .history-list { gap: 4px; }
   .history-item { padding-block: 4px; }

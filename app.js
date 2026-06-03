@@ -159,7 +159,8 @@ const ui = {
   editFoodGrid:        document.getElementById('editFoodGrid'),
   editSizeGrid:        document.getElementById('editSizeGrid'),
   editPreview:         document.getElementById('editPreview'),
-  cancelEditBtn:       document.getElementById('cancelEditBtn')
+  cancelEditBtn:       document.getElementById('cancelEditBtn'),
+  closeEditBtn:        document.getElementById('closeEditBtn')
 };
 
 function toDateKey(date) {
@@ -167,10 +168,6 @@ function toDateKey(date) {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
-}
-
-function prettyDate(date) {
-  return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 function formatTime(ts) {
@@ -194,10 +191,6 @@ function estimateCalories(foodId, sizeId) {
   const food = findFood(foodId);
   const size = findSize(sizeId);
   return Math.round(food.baseCalories * size.ratio);
-}
-
-function describeEntry(entry) {
-  return `${entry.foodName} · ${entry.sizeName}`;
 }
 
 const store = {
@@ -398,11 +391,24 @@ function saveChoice(foodId, sizeId) {
   showToast('Saved');
 }
 
+function scrollActiveEditFoodIntoView() {
+  requestAnimationFrame(() => {
+    ui.editFoodGrid
+      .querySelector('.food-btn.active')
+      ?.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function renderEditFoodGrid() {
+  renderFoodGrid(ui.editFoodGrid, state.edit.foodId, null);
+  scrollActiveEditFoodIntoView();
+}
+
 function openEdit(entry) {
   state.edit.id = entry.id;
   state.edit.foodId = entry.foodId;
   state.edit.sizeId = entry.sizeId;
-  renderFoodGrid(ui.editFoodGrid, state.edit.foodId, null);
+  renderEditFoodGrid();
   renderSizeGrid(ui.editSizeGrid, state.edit.sizeId);
   ui.editPreview.textContent = `${estimateCalories(state.edit.foodId, state.edit.sizeId)} kcal`;
   ui.editDialog.showModal();
@@ -466,7 +472,7 @@ function bindEvents() {
     const btn = event.target.closest('button[data-food-id]');
     if (!btn) return;
     state.edit.foodId = btn.dataset.foodId;
-    renderFoodGrid(ui.editFoodGrid, state.edit.foodId, null);
+    renderEditFoodGrid();
     updateEditPreview();
   });
 
@@ -496,6 +502,11 @@ function bindEvents() {
   });
 
   ui.cancelEditBtn.addEventListener('click', () => ui.editDialog.close());
+  ui.closeEditBtn.addEventListener('click', () => ui.editDialog.close());
+
+  ui.editDialog.addEventListener('click', (event) => {
+    if (event.target === ui.editDialog) ui.editDialog.close();
+  });
 
   document.querySelectorAll('[data-target-adjust]').forEach((btn) => {
     btn.addEventListener('click', () => {
